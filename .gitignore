@@ -6,3 +6,4 @@ logs/
 ._Snakefile.calling*
 .ipynb_checkpoints/
 .summarise.delly.py.swp*
+*._*
