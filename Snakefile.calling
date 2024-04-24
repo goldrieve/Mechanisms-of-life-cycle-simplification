@@ -1,0 +1,373 @@
+SAMPLES, = glob_wildcards("data/reads/{sample}_1.fq.gz")
+LINS, = glob_wildcards("data/snpeff/lineage_specific/{lin}.vcf")
+
+rule all:
+	input: 
+		expand ("data/vcf_v1/{sample}.g.vcf", sample=SAMPLES),
+		"data/vcf_v1/filtered_calls.vcf",
+		"data/tree/strict_snps.genotyped.fasta.varsites.phy.contree",
+		"data/plink/plink.hom.overlap.txt",
+                "data/plink/plink.hom.overlap.csv",
+                #"logs/editing_overlap3.log",
+		"data/circos/equi_ovi_roh.txt",
+                "data/snpeff/case_control.vcf",
+                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf",
+        	"logs/extract.log",
+        	"logs/mkdir.log",
+ #       	expand ("data/snpeff/lineage_specific/{lin}.vcf.dir/{lin}.snpeff", lin=LINS)
+
+rule index_genome:
+	input:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta"
+	output:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fai"
+	message: ''' --- indexing the genome --- '''
+	log:
+        "logs/index_genome.log"
+	shell: 
+		"samtools faidx {input} -o {output}"
+
+rule haplotype_v1:
+	input:
+		bam = "data/mapped/{sample}.rg.marked.bam",
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta"
+	output:
+		"data/vcf_v1/{sample}.g.vcf"
+	message: ''' --- calling haplotypes --- '''
+	threads: 16
+	log:
+        "logs/haplotype_v1.{sample}.log"
+	shell:
+		"gatk HaplotypeCaller -I {input.bam} -O {output} -R {input.genome} -ERC GVCF" 
+
+rule combine_gvcf_v1:
+	input:
+		samples = "data/vcf_v1/samples.list",
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+	output:
+		"data/vcf_v1/combined.g.vcf"
+	message: ''' --- combining gvcfs --- '''
+	threads: 16
+	log:
+        "logs/combine_gvcf_v1.log"
+	shell:
+		"gatk CombineGVCFs -R {input.genome} -V {input.samples} -O {output}"
+
+rule genotype_gvcf_v1:
+	input:
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		combg = "data/vcf_v1/combined.g.vcf"
+	output:
+		"data/vcf_v1/calls.vcf"
+	message: ''' --- genotyping --- '''
+	threads: 16
+	log:
+        "logs/genotype_gvcf_v1.log"
+	shell:
+		"gatk GenotypeGVCFs -R {input.genome} -V {input.combg} -O {output}"
+
+rule select_snps:
+	input:
+		"data/vcf_v1/calls.vcf"
+	output:
+		"data/vcf_v1/snps.vcf"
+	message: ''' --- selecting snps --- '''
+	threads: 16
+	log:
+        "logs/select_snps.log"
+	shell:
+		"gatk SelectVariants -V {input} -select-type SNP -O {output}"
+
+rule select_indels:
+	input:
+		"data/vcf_v1/calls.vcf"
+	output:
+		"data/vcf_v1/indels.vcf"
+	message: ''' --- selecting indels --- '''
+	threads: 16
+	log:
+        "logs/select_indels.log"
+	shell:
+		"gatk SelectVariants -V {input} -select-type INDEL -O {output}"
+
+rule filter_snps:
+	input:
+		"data/vcf_v1/snps.vcf",
+	params: 
+		'-filter "DP < 5.0" --filter-name "DP5" \
+        -filter "QUAL < 500.0" --filter-name "QUAL500" \
+        -filter "SOR > 3.0" --filter-name "SOR3" \
+        -filter "FS > 60.0" --filter-name "FS60" \
+        -filter "MQ < 40.0" --filter-name "MQ40" \
+        -filter "MQRankSum < -12.5" --filter-name "MQRankSum-12.5" \
+        -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" \
+        -window "10" \
+        -cluster "3"'
+	output:
+		"data/vcf_v1/top_snps_filtered.vcf"
+	message: ''' --- selecting top variants --- '''
+	threads: 16
+	log:
+        "logs/filter_snps.log"
+	shell:
+		"gatk VariantFiltration -V {input} {params} -O {output}"
+
+rule filter_indels:
+	input:
+		"data/vcf_v1/indels.vcf",
+	params:
+		'-filter "QD < 2.0" --filter-name "QD2" \
+        -filter "QUAL < 500.0" --filter-name "QUAL500" \
+        -filter "FS > 200.0" --filter-name "FS200" \
+        -filter "ReadPosRankSum < -20.0" --filter-name "ReadPosRankSum-20"'
+	output:
+		"data/vcf_v1/top_indels_filtered.vcf"
+	message: ''' --- filter indels --- '''
+	threads: 16
+	log:
+        "logs/filter_indels.log"
+	shell:
+		"gatk VariantFiltration -V {input} {params} -O {output}"
+
+rule merge_filtered:
+	input:
+		snps = "data/vcf_v1/top_snps_filtered.vcf",
+		indels = "data/vcf_v1/top_indels_filtered.vcf"
+	output:
+		"data/vcf_v1/variants_filtered.vcf"
+	message: ''' --- merging top snps and indels --- '''
+	threads: 16
+	log:
+        "logs/merge_filtered.log"
+	shell:
+		"gatk MergeVcfs -I {input.snps} -I {input.indels} -O {output}"
+
+rule output_calls:
+	input:
+		"data/vcf_v1/variants_filtered.vcf"
+	output:
+		"data/vcf_v1/final_calls.vcf"
+	message: ''' --- extracting --- '''
+	threads: 16
+	log:
+        "logs/bcftools_top.log"
+	shell:
+		"bcftools view -f .,PASS {input} > {output}"
+
+rule select_final_snps:
+	input:
+		"data/vcf_v1/final_calls.vcf"
+	output:
+		"data/tree/final_snps.vcf"
+	message: ''' --- selecting final snps --- '''
+	threads: 16
+	log:
+        "logs/select_snps.log"
+	shell:
+		"gatk SelectVariants -V {input} -select-type SNP -O {output}"
+
+rule genotyped:
+	input:
+		"data/tree/final_snps.vcf"
+	output:
+		"data/tree/strict_snps.genotyped.recode.vcf"
+	message: ''' --- extracting --- '''
+	threads: 16
+	log:
+        "logs/generate_genotyped.log"
+	shell:
+		"vcftools --vcf {input} --max-missing 1  --recode --recode-INFO-all --out {output}"
+
+rule generate_fasta:
+	input:
+		"data/tree/strict_snps.genotyped.recode.vcf"
+	output:
+		"data/tree/strict_snps.genotyped.fasta"
+	message: ''' --- generating genotyped fasta file --- '''
+	threads: 16
+	log:
+        "logs/generate_genotyped_fasta.log"
+	shell:
+		"vk phylo fasta {input} > {output}"
+
+rule generate_varsites:
+	input:
+		"data/tree/strict_snps.genotyped.fasta"
+	output:
+		"logs/generate_varsites.log"
+	message: ''' --- generating genotyped varsites--- '''
+	threads: 16
+	log:
+        "logs/generate_varsites.log"
+	shell:
+		"iqtree -s {input} -m MFP+ASC -bb 1000 -nt AUTO"
+
+rule running_iqtree:
+	input:
+		"data/tree/strict_snps.genotyped.fasta.varsites.phy"
+	output:
+		"data/tree/strict_snps.genotyped.fasta.varsites.phy.contree"
+	message: ''' --- running iqtree --- '''
+	threads: 16
+	log:
+        "logs/running_iqtree.log"
+	shell:
+		"iqtree -s {input} -m MFP+ASC -bb 1000 -nt AUTO"
+
+rule bcf_rename:
+        input:
+                vcf = "data/vcf_v1/final_calls.vcf.gz",
+		file = "data/misc/isolate.header"
+        output:
+                "data/vcf_v1/final_calls.updated.vcf.gz"
+        message: ''' --- running rename --- '''
+        threads: 16
+        log:
+        "logs/running_rename.log"
+        shell:
+        	"bcftools reheader -s {input.file} -o {output} {input.vcf}"
+
+rule running_plink:
+        input:
+        	"data/vcf_v1/final_calls.updated.vcf.gz"
+        output:
+        	"data/plink/plink.hom.overlap"
+
+	params: "data/plink/plink"		
+        message: ''' --- running plink --- '''
+        threads: 16
+        log:
+        "logs/running_plink.log"
+        shell:
+                "plink -vcf {input} --homozyg-snp 20 --homozyg-kb 50 --homozyg-density 10 --homozyg-window-snp 10 --homozyg-window-missing 4 --homozyg-het 0 --maf 0.01 --homozyg-group --allow-extra-chr --family --write-cluster --cluster --out {params}"
+
+rule editing_overlap:
+        input:
+                "data/plink/plink.hom.overlap"
+        output:
+                "data/plink/plink.hom.overlap.txt"
+        message: ''' --- making overlap txt --- '''
+        threads: 16
+        log:
+        "logs/editing_overlap.log"
+        shell:
+        	"cat {input} | tr -s '[:blank:]' ',' > {output}"
+
+rule editing_overlap2:
+        input:
+                "data/plink/plink.hom.overlap.txt"
+        output:
+                "data/plink/plink.hom.overlap.csv"
+        message: ''' --- making overlap csv --- '''
+        threads: 16
+        log:
+        "logs/editing_overlap2.log"
+        shell:
+        	"cut -c2- {input} > {output}"
+
+rule editing_overlap3:
+        input:
+                "data/plink/plink.hom.overlap.csv"
+        output:
+                log = "logs/editing_overlap3.log"
+        message: ''' --- making overlap csv --- '''
+        threads: 16
+        log:
+        	"logs/editing_overlap3.log"
+        shell:
+        	"sed -i '' 's/GRP/GRP,/g' {input}"
+
+rule summarise_plink:
+        input:
+        	file = "data/plink/plink.hom.overlap.csv",
+        	py = "summarise.plink.py"
+        output:
+                "data/circos/equi_ovi_roh.txt",
+        message: ''' --- summarising plink --- '''
+        threads: 16
+        log:
+        "logs/summarise_plink.log"
+        shell:
+        	"python {input.py}"
+
+rule run_snpeff:
+        input:
+		"data/vcf_v1/final_calls.vcf.gz"
+        output:
+                "data/snpeff/final_calls_snpeff.vcf"
+        message: ''' --- running snpeff --- '''
+        threads: 1
+        log:
+        "logs/running_snpeff.log"
+        shell:
+        	"java -Xmx8g -jar data/pkgs/snpeff-5.0-0/snpEff.jar Tb927 {input} > {output}"
+
+rule case_control:
+        input:
+                "data/snpeff/final_calls_snpeff.vcf"
+        output:
+                "data/snpeff/case_control.vcf"
+        message: ''' --- run case control --- '''
+        threads: 16
+        log:
+        	"logs/case_control.log"
+        shell:
+        	"SnpSift caseControl -name T.b.evansitypeA -tfam data/snpeff/tfam/evansi_a.tfam {input} | SnpSift caseControl -name T.b.evansitypeB -tfam data/snpeff/tfam/evansi_b.tfam - | SnpSift caseControl -name T.b.evansitypeC -tfam data/snpeff/tfam/evansi_c.tfam - | SnpSift caseControl -name T.b.equitypeOVI -tfam data/snpeff/tfam/equi_ovi.tfam - | SnpSift caseControl -name T.b.equitypeBOTAT -tfam data/snpeff/tfam/equi_botat.tfam - | SnpSift caseControl -name T.b.brucei -tfam data/snpeff/tfam/brucei_brucei.tfam - | SnpSift caseControl -name T.b.gambiense -tfam data/snpeff/tfam/brucei_gambiense.tfam - | SnpSift caseControl -name T.b.gambienseII -tfam data/snpeff/tfam/brucei_gambienseII.tfam - | SnpSift caseControl -name T.b.rhodesiense -tfam data/snpeff/tfam/brucei_rhodesiense.tfam - > {output}"
+
+rule lineage_specific:
+        input:
+                "snpsift.sh"
+        output:
+                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf"
+        message: ''' --- extracting lineages specific variants --- '''
+        threads: 16
+        log:
+        	"log/lineage_specific.log"
+        shell:
+        	"./{input}"
+
+rule circos_variants:
+        input:
+                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf"
+        output:
+                "data/circos/T.b.equitypeBOTAT.vcf_variant"
+        message: ''' --- extract variants --- '''
+        threads: 16
+        log:
+        	"logs/extract.log"
+        shell:
+        	"for i in data/snpeff/lineage_specific/*vcf \n do \n bcftools query -f '%CHROM\t%POS\t%POS\n' $i > $i.variants \n done"
+
+rule shuffle_variants:
+        input:
+                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf"
+        output:
+                "data/circos/T.b.equitypeBOTAT.vcf_variant.shuf"
+        message: ''' --- shuffle variants --- '''
+        threads: 16
+        log:
+                "logs/shuffle.log"
+        shell:
+        	"for i in data/circos/*variants \n do \n shuf -n 17820 $i > $i.shuf \n done"
+
+rule mkdir:
+        input:
+                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf"
+        output:
+                "logs/mkdir.log"
+        message: ''' --- run snpeff on lineage specific variants --- '''
+        threads: 16
+        log:
+                "logs/mkdir.log"
+        shell:
+        	"for i in data/snpeff/lineage_specific/*vcf \n do mkdir $i.dir \n done"
+
+rule snpeff_lineage:
+        input:
+		"data/snpeff/lineage_specific/{lin}.vcf"
+        output:
+                "data/snpeff/lineage_specific/{lin}.vcf.dir/{lin}.snpeff"
+        message: ''' --- run snpeff on lineage specific variants --- '''
+        threads: 16
+        shell:
+        	"cd {input}.dir \n java -Xmx8g -jar ../../pkgs/snpeff-5.0-0/snpEff.jar Tb927 {input} > {output}"

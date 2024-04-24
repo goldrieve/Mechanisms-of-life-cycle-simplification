@@ -1,0 +1,177 @@
+SAMPLES, = glob_wildcards("data/mapped/{sample}.rg.marked.bam")
+
+rule all:
+    input:
+    	"data/ref_genome/srt.bam.bai",
+    	"data/ref_genome/map.fa.gz",
+    	expand ("data/delly/{sample}.bcf", sample=SAMPLES),
+    	"data/delly/sites.bcf",
+    	"data/delly/merged/merged.bcf.csi",
+    	"data/delly/merged/filtered.bcf",
+    	"data/circos/equi_botat_cnv.txt"
+
+rule dicey:
+	input:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta"
+	output:
+		fwd = "data/ref_genome/map/read1",
+		rv = "data/ref_genome/map/read2"
+	message: ''' --- running dicey  --- '''
+	threads: 16
+	log:
+	"logs/dicey.log"
+	shell:
+		"dicey chop {input} -f {output.fwd} -g {output.rv}"
+
+rule gmap:
+	input:
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		fwd = "data/ref_genome/map/read1.fq.gz",
+		rv = "data/ref_genome/map/read2.fq.gz"
+	output:
+		"data/ref_genome/srt.bam"
+	message: ''' --- running bwa mem --- '''
+	threads: 16
+	log:
+	"logs/bwa.log"
+	shell:
+		"bwa mem -t 14 {input.genome} {input.fwd} {input.rv} | samtools sort -@ 8 -o {output} -"
+
+rule sam_index:
+	input:
+		"data/ref_genome/srt.bam"
+	output:
+		"data/ref_genome/srt.bam.bai"
+	message: ''' --- indexing sam  --- '''
+	threads: 16
+	log:
+	"logs/index.log"
+	priority: 100
+	shell:
+		"samtools index {input} {output}"
+
+rule dicey_map:
+	input:
+		"data/ref_genome/srt.bam"
+	output:
+		"data/ref_genome/map.fa.gz"
+	message: ''' --- running dicey mappability --- '''
+	threads: 16
+	log:
+	"logs/dicey.map.log"
+	priority: 100
+	shell:
+		"dicey mappability2 {input} -o {output}"
+
+rule gunzip:
+	input:
+		"data/ref_genome/map.fa.gz"
+	output:
+		"data/ref_genome/map.fa.gz.gzi"
+	message: ''' --- zipping index  --- '''
+	threads: 16
+	log:
+	"logs/zip.log"
+	shell:
+		"gunzip {input} && bgzip {output} && samtools faidx {input}"
+
+rule delly_cnv:
+	input:
+		bam = "data/mapped/{sample}.rg.marked.bam",
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		gmap = "data/ref_genome/map.fa.gz"
+	output:
+		"data/delly/{sample}.bcf"
+	message: ''' --- running delly cnv  --- '''
+	threads: 4
+	log:
+	"logs/cnv.log"
+	shell:
+		"delly cnv -o {output} -g {input.genome} -m {input.gmap} {input.bam}"
+
+rule delly_merge:
+	input:
+		expand("data/delly/{sample}.bcf", sample=SAMPLES)
+	output:
+		"data/delly/sites.bcf"
+	message: ''' --- merge cnv  --- '''
+	threads: 16
+	log:
+	"logs/merge.log"
+	shell:
+		"delly merge -e -p -o {output} -m 1000 -n 100000 {input}"
+
+rule delly_cnv2:
+	input:
+		sites = "data/delly/sites.bcf",
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		gmap = "data/ref_genome/map.fa.gz",
+		bam = "data/mapped/{sample}.rg.marked.bam"
+	output:
+		"data/delly/{sample}.geno.bcf"
+	message: ''' --- genotyping cnv  --- '''
+	threads: 4
+	log:
+	"logs/cnv.geno.log"
+	shell:
+		"delly cnv -u -v {input.sites} -g {input.genome} -m {input.gmap} -o {output} {input.bam}"
+
+rule bcf_merge:
+	input:
+		expand("data/delly/{sample}.geno.bcf", sample=SAMPLES)
+	output:
+		"data/delly/merged/merged.bcf"
+	message: ''' --- merging bcf  --- '''
+	threads: 16
+	log:
+	"logs/delly.merge.log"
+	shell:
+		"bcftools merge -m id -O b -o {output} {input}"
+
+rule bcf_index:
+	input:
+		"data/delly/merged/merged.bcf"
+	output:
+		"data/delly/merged/merged.bcf.csi"
+	message: ''' --- indexing bcf  --- '''
+	threads: 16
+	log:
+	"logs/delly.index.log"
+	shell:
+		"bcftools index {input} -o {output} "
+
+rule delly_classify:
+	input:
+		"data/delly/merged/merged.bcf"
+	output:
+		"data/delly/merged/filtered.bcf"
+	message: ''' --- classifying cnv  --- '''
+	threads: 16
+	log:
+	"logs/classify.log"
+	shell:
+		"delly classify -f germline -o {output} {input}"
+
+rule export_summary:
+	input:
+		"data/delly/merged/filtered.bcf"
+	output:
+		"data/delly/merged/summary.tsv"
+	message: ''' --- export cnv summary  --- '''
+	threads: 16
+	log:
+	"logs/export.log"
+	shell:
+		"bcftools query -f '%CHROM\t%POS\\t%INFO/END\t%ID[\t%RDCN]\n' {input} > {output}"
+
+rule summarise:
+	input:
+		"data/delly/merged/summary.tsv"
+	output:
+		"data/circos/equi_botat_cnv.txt"
+	message: ''' --- export cnv summary  --- '''
+	threads: 16
+	log:
+		"logs/summarise.log"
+	shell:
+		"python summarise.delly.py"

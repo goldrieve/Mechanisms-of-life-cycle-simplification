@@ -1,0 +1,8 @@
+data/
+logs/
+.DS_Store*
+._Snakefile.mapping*
+.snakemake/
+._Snakefile.calling*
+.ipynb_checkpoints/
+.summarise.delly.py.swp*

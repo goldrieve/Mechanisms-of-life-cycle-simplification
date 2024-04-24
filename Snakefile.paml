@@ -1,0 +1,69 @@
+SAMPLES, = glob_wildcards("data/codeml/fas/{sample}.fas")
+
+rule all:
+	input: 
+		expand ("data/codeml/ctl/{sample}/{sample}.ctl", sample=SAMPLES),
+		expand ("data/codeml/codeml/{sample}.txt", sample=SAMPLES),
+                "data/codeml/fas/Tb927.10.4280:mRNA_CDS_0.fas",
+                "data/codeml/codeml/codeml.txt"
+
+rule vcf2fasta:
+        input:
+                genome = "/data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+                gff = "/data/ref_genome/TriTrypDB-46_TbruceiTREU927.gff",
+                vcf = "/data/vcf_v1/final_calls.vcf.gz"
+        output:
+        	"data/codeml/fas/Tb927.10.4280:mRNA_CDS_0.fas"
+        params:
+                "data/codeml/fas/"
+        message: ''' --- make ctl --- '''
+        priority: 100
+	log:
+        	"logs/vcf2fasta.log"
+        shell:
+                "python ~/Pkgs/vcf2fasta/vcf2fasta.py --fasta {input.genome} --gff {input.gff} --vcf {input.vcf} --feat CDS --out {params}"
+
+rule ctl:
+        input:
+                "data/codeml/ctl/master.ctl"
+        params:
+                "{sample}"
+        output:
+                "data/codeml/ctl/{sample}/{sample}.ctl"
+        message: ''' --- make ctl --- '''
+        priority: 100
+	log:
+        	"logs/{sample}.ctl.log"
+        shell:
+                "cat {input} | sed 's/test/{params}/g' > {output}"
+
+rule codeml:
+        input:
+                "data/codeml/ctl/{sample}/{sample}.ctl"
+        params:
+                "{sample}"
+        output:
+                "data/codeml/codeml/{sample}.txt"
+        message: ''' --- running codeml --- '''
+        shell:
+                "cd data/codeml/ctl/{params} \n  /Users/s1886853/Desktop/vcf2fasta_CDS/./expect_codeml.bsh i {params}.ctl"
+
+rule combine:
+        input:
+                "data/codeml/codeml"
+        params:
+                "data/codeml/codeml/"
+        output:
+                "data/codeml/codeml/codeml.txt"
+        message: ''' --- combine codeml outputs --- '''
+        shell:
+                "grep "w (dN/dS) for branches" {params}*txt > {output}"
+
+rule summarise:
+        input:
+                "summarise.codeml.py"
+        output:
+                "data/codeml/dnds.txt"
+        message: ''' --- summarise codeml --- '''
+        shell:
+                "python {input}"

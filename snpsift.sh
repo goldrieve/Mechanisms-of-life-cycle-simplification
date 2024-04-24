@@ -1,0 +1,19 @@
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeA = '0,28,28' || CasesT.b.evansitypeA = '28,0,56' && CasesT.b.brucei = '0,0,0' && CasesT.b.gambiense = '0,0,0' && CasesT.b.gambienseII = '0,0,0' && CasesT.b.rhodesiense = '0,0,0'" > data/snpeff/lineage_specific/temp/T.b.evansitypeA_hethom.vcf
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeA = '28,0,56' && CasesT.b.brucei != '12,0,24' && CasesT.b.gambiense != '20,0,40' && CasesT.b.gambienseII != '5,0,10' && CasesT.b.rhodesiense != '9,0,18'" > data/snpeff/lineage_specific/temp/T.b.evansitypeA_hom.vcf
+gatk MergeVcfs -I data/snpeff/lineage_specific/temp/T.b.evansitypeA_hethom.vcf -I data/snpeff/lineage_specific/temp/T.b.evansitypeA_hom.vcf -O data/snpeff/lineage_specific/T.b.evansitypeA.vcf
+
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeB = '0,2,2' || CasesT.b.evansitypeB = '2,0,4' && CasesT.b.brucei = '0,0,0' && CasesT.b.gambiense = '0,0,0' && CasesT.b.gambienseII = '0,0,0' && CasesT.b.rhodesiense = '0,0,0'" > data/snpeff/lineage_specific/temp/T.b.evansitypeB_hethom.vcf
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeB = '2,0,4' && CasesT.b.brucei != '12,0,24' && CasesT.b.gambiense != '20,0,40' && CasesT.b.gambienseII != '5,0,10' && CasesT.b.rhodesiense != '9,0,18'" > data/snpeff/lineage_specific/temp/T.b.evansitypeB_hom.vcf
+gatk MergeVcfs -I data/snpeff/lineage_specific/temp/T.b.evansitypeB_hethom.vcf -I data/snpeff/lineage_specific/temp/T.b.evansitypeB_hom.vcf -O data/snpeff/lineage_specific/T.b.evansitypeB.vcf
+
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeC = '0,1,1' || CasesT.b.evansitypeC = '1,0,2' && CasesT.b.brucei = '0,0,0' && CasesT.b.gambiense = '0,0,0' && CasesT.b.gambienseII = '0,0,0' && CasesT.b.rhodesiense = '0,0,0'" > data/snpeff/lineage_specific/temp/T.b.evansitypeC_hethom.vcf
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.evansitypeC = '1,0,2' && CasesT.b.brucei != '12,0,24' && CasesT.b.gambiense != '20,0,40' && CasesT.b.gambienseII != '5,0,10' && CasesT.b.rhodesiense != '9,0,18'" > data/snpeff/lineage_specific/temp/T.b.evansitypeC_hom.vcf
+gatk MergeVcfs -I data/snpeff/lineage_specific/temp/T.b.evansitypeC_hethom.vcf -I data/snpeff/lineage_specific/temp/T.b.evansitypeC_hom.vcf -O data/snpeff/lineage_specific/T.b.evansitypeC.vcf
+
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.equitypeOVI = '0,4,4' || CasesT.b.equitypeOVI = '4,0,8' && CasesT.b.brucei = '0,0,0' && CasesT.b.gambiense = '0,0,0' && CasesT.b.gambienseII = '0,0,0' && CasesT.b.rhodesiense = '0,0,0'" > data/snpeff/lineage_specific/temp/T.b.equitypeOVI_hethom.vcf
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.equitypeOVI= '4,0,8' && CasesT.b.brucei != '12,0,24' && CasesT.b.gambiense != '20,0,40' && CasesT.b.gambienseII != '5,0,10' && CasesT.b.rhodesiense != '9,0,18'" > data/snpeff/lineage_specific/temp/T.b.equitypeOVI_hom.vcf
+gatk MergeVcfs -I data/snpeff/lineage_specific/temp/T.b.equitypeOVI_hethom.vcf -I data/snpeff/lineage_specific/temp/T.b.equitypeOVI_hom.vcf -O data/snpeff/lineage_specific/T.b.equitypeOVI.vcf
+
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.equitypeBOTAT = '0,2,2' || CasesT.b.equitypeBOTAT = '2,0,4' && CasesT.b.brucei = '0,0,0' && CasesT.b.gambiense = '0,0,0' && CasesT.b.gambienseII = '0,0,0' && CasesT.b.rhodesiense = '0,0,0'" > data/snpeff/lineage_specific/temp/T.b.equitypeBOTAT_hethom.vcf
+cat data/snpeff/case_control.vcf | SnpSift filter "CasesT.b.equitypeBOTAT = '2,0,4' && CasesT.b.brucei != '12,0,24' && CasesT.b.gambiense != '20,0,40' && CasesT.b.gambienseII != '5,0,10' && CasesT.b.rhodesiense != '9,0,18'" > data/snpeff/lineage_specific/temp/T.b.equitypeBOTAT_hom.vcf
+gatk MergeVcfs -I data/snpeff/lineage_specific/temp/T.b.equitypeBOTAT_hethom.vcf -I data/snpeff/lineage_specific/temp/T.b.equitypeBOTAT_hom.vcf -O data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf

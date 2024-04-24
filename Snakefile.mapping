@@ -1,0 +1,212 @@
+SAMPLES, = glob_wildcards("data/reads/{sample}_1.fq.gz")
+
+rule all:
+	input: 
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.dict",
+		expand ("data/fastqc/reads/{sample}_1_fastqc.html", sample=SAMPLES),
+		expand ("data/fastqc/trimmed/{sample}_1.trimmed_fastqc.html", sample=SAMPLES),
+		expand ("data/stats/{sample}.stats.txt", sample=SAMPLES),
+		"data/stats/summary.txt",
+		"data/stats/fastqc_stats.csv",
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta.fai",
+		expand ("data/mapped/{sample}.rg.marked.bam.bai", sample=SAMPLES)
+
+rule fastqc:
+	input:
+		fwd = "data/reads/{sample}_1.fq.gz",
+		rv = "data/reads/{sample}_2.fq.gz",
+	output:
+		html1 = "data/fastqc/reads/{sample}_1_fastqc.html",
+		html2 = "data/fastqc/reads/{sample}_2_fastqc.html",
+		zip1  = "data/fastqc/reads/{sample}_1_fastqc.zip",
+		zip2  = "data/fastqc/reads/{sample}_2_fastqc.zip"
+	message: ''' --- running fastqc  --- '''
+	log:
+        "logs/{sample}.fastqc.log"
+	threads: 4
+	shell:
+		"fastqc -t 4 --extract {input.fwd} {input.rv} -o data/fastqc/reads"
+
+rule gatk_dict:
+	input:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta"
+	output:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.dict"
+	message: ''' --- creating genome dict  --- '''
+	log:
+        "logs/gatk_dict.{sample}.log"
+	shell:
+		"gatk CreateSequenceDictionary -R {input} -O {output}"
+
+rule trim:
+	input:
+		fwd = "data/reads/{sample}_1.fq.gz",
+		rv = "data/reads/{sample}_2.fq.gz",
+		adapt = "data/misc/adapters.fa"
+	output:
+		fwd_trim = "data/trimmed/{sample}_1.trimmed.fq.gz",
+		fwd_untrim = "data/trimmed/{sample}_1.untrimmed.fq.gz",
+		rv_trim = "data/trimmed/{sample}_2.trimmed.fq.gz",
+		rv_untrim = "data/trimmed/{sample}_2.untrimmed.fq.gz"
+	message: ''' --- trimming  --- '''
+	log:
+        "logs/trim.{sample}.log"
+	threads: 16
+	shell:
+		"trimmomatic PE -threads {threads} {input.fwd} {input.rv} {output.fwd_trim} {output.fwd_untrim} {output.rv_trim} {output.rv_untrim} SLIDINGWINDOW:4:20 ILLUMINACLIP:{input.adapt}:2:40:15 MINLEN:25"
+
+rule fastqc_trim:
+	input:
+		fwd_trim = "data/trimmed/{sample}_1.trimmed.fq.gz",
+		rv_trim = "data/trimmed/{sample}_2.trimmed.fq.gz",
+	output:
+                html1 = "data/fastqc/trimmed/{sample}_1.trimmed_fastqc.html",
+                html2 = "data/fastqc/trimmed/{sample}_2.trimmed_fastqc.html",
+                zip1  = "data/fastqc/trimmed/{sample}_1.trimmed_fastqc.zip",
+                zip2  = "data/fastqc/trimmed/{sample}_2.trimmed_fastqc.zip"
+	message: ''' --- running fastqc  --- '''
+	log:
+        "logs/{sample}.fastqc.log"
+	threads: 4
+	shell:
+		"fastqc -t 4 --extract {input.fwd_trim} {input.rv_trim} -o data/fastqc/trimmed"
+
+rule fastqc_stats:
+	input:
+		"summarise.fastqc.py"
+	output:
+		"data/stats/fastqc_stats.csv"
+	message: ''' --- generating fastqc stats  --- '''
+	threads: 16
+	log:
+        "logs/fastqc_stats.log"
+	shell:
+		"python {input}"
+
+rule bwa_map:
+	input:
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		fwd = "data/trimmed/{sample}_1.trimmed.fq.gz",
+		rv = "data/trimmed/{sample}_2.trimmed.fq.gz"
+	output:
+		"data/mapped/{sample}.bam"
+	priority: 50
+	message: ''' --- mapping  --- '''
+	threads: 16
+	log:
+        "logs/mapping.{sample}.log"
+	shell:
+		"bwa mem -t {threads} {input.genome} {input.fwd} {input.rv} | samtools view -Sb - > {output}"
+
+rule map_stats:
+	input:
+		"data/mapped/{sample}.bam"
+	output:
+		"data/stats/{sample}.stats.txt",
+	message: ''' --- generating mapping stats  --- '''
+	threads: 4
+	log:
+        "logs/map_stats.log"
+	shell:
+		"samtools flagstat {input} -@ 4 > {output}"
+
+rule summarise_stats:
+	input:
+		"summarise.mapping.py"
+	output:
+		"data/stats/summary.txt"
+	message: ''' --- generating mapping stats  --- '''
+	threads: 16
+	log:
+        "logs/stats.log"
+	shell:
+		"python {input}"
+
+
+rule fastq_to_sam:
+	input:
+		fwd = "data/trimmed/{sample}_1.trimmed.fq.gz",
+		rv = "data/trimmed/{sample}_2.trimmed.fq.gz"
+	output:
+		"data/trimmed/{sample}.umap.bam"
+	message: ''' --- create a umap  --- '''
+	threads: 16
+	log:
+        "logs/fastq_to_sam.{sample}.log"
+	shell:
+		"gatk FastqToSam -F1 {input.fwd} -F2 {input.rv} -O {output} -SM {input.fwd} -RG {input.fwd}"
+
+rule merge_map_and_sam:
+	input:
+		genome = "data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta",
+		bam = "data/mapped/{sample}.bam",
+		umap = "data/trimmed/{sample}.umap.bam"
+	output:
+		"data/mapped/{sample}.merge.bam"
+	message: ''' --- merging umap and bam  --- '''
+	threads: 16
+	log:
+        "logs/merge_map_and_sam.{sample}.log"
+	shell:
+		"gatk MergeBamAlignment -ALIGNED {input.bam} -UNMAPPED {input.umap} -O {output} -R {input.genome}"
+
+rule sam_sort:
+	input:
+		"data/mapped/{sample}.merge.bam"
+	output:
+		"data/mapped/{sample}.qname.bam"
+	message: ''' --- sorting  --- '''
+	threads: 16
+	log:
+        "logs/sam_sort.{sample}.log"
+	shell:
+		"samtools sort {input} -m 1000000000 -@ 14 -o {output}"
+
+rule mark_dups:
+	input:
+		"data/mapped/{sample}.qname.bam"
+	output:
+		"data/mapped/{sample}.marked.bam"
+	message: ''' --- marking duplicates  --- '''
+	threads: 16
+	log:
+        "logs/mark_dups.{sample}.log"
+	shell:
+		"gatk MarkDuplicates -I {input} -O {output} -M {output}.marked_dup_metrics.txt -ASSUME_SORT_ORDER coordinate"
+
+rule rg_mark:
+	input:
+		"data/mapped/{sample}.marked.bam"
+	params:
+		rg = "--RGLB {sample} --RGSM {sample} --RGPU {sample} --RGPL mixed"
+	output:
+		"data/mapped/{sample}.rg.marked.bam"
+	message: ''' --- adding read groups  --- '''
+	threads: 16
+	log:
+        "logs/rg_mark.{sample}.log"
+	shell:
+		"gatk AddOrReplaceReadGroups -I {input} -O {output} {params.rg}"
+
+rule rg_mark_index:
+	input:
+		"data/mapped/{sample}.rg.marked.bam"
+	output:
+		"data/mapped/{sample}.rg.marked.bam.bai"
+	message: ''' --- building a bam index  --- '''
+	threads: 16
+	log:
+        "logs/rg_mark_index.{sample}.log"
+	shell:
+		"gatk BuildBamIndex -I {input} -O {output}"
+
+rule index_genome:
+	input:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta"
+	output:
+		"data/ref_genome/TriTrypDB-46_TbruceiTREU927_Genome.fasta.fai"
+	message: ''' --- indexing the genome --- '''
+	log:
+        "logs/index_genome.log"
+	shell: 
+		"samtools faidx {input} -o {output}"
