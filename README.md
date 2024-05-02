@@ -18,3 +18,10 @@ python final_db.py
 ```
 
 All figures in the manuscript were produced in R, using the four R scripts in the R_scripts directory.
+
+You can download the aligned fasta sequences, one per isolate, for each CDS.
+
+```
+wget https://github.com/goldrieve/Mechanisms-of-life-cycle-simplification/blob/master/alignment_fastas/alignment.fasta.tar.gz
+tar -xvf alignment.fasta.tar.gz
+```
