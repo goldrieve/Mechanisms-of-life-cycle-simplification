@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set paml_ctl_file [lindex $argv 1];
-spawn ~/Pkgs/paml/src/codeml $paml_ctl_file
+spawn /Volumes/matthews/Guy/Raw_data/monomorph/pkgs/paml/bin/codeml $paml_ctl_file
 expect -re "(.*)" 
 	if {$expect_out(1,string) == "stop codon * in seq *\n*Press Enter*"} { 
 	send "\n\r\n"}

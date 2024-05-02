@@ -1,22 +1,9 @@
-library(ggplot2)
-library(ggpolypath)
-library(ggpubr)
-library(ggrepel)
-library(data.table)
-library(rstatix)
-library (tximport)
-library (DESeq2)
-library(GenomicFeatures)
-library(vsn)
-library(pheatmap)
-library(RColorBrewer)
-library(data.table)
-library (EnhancedVolcano)
-library (ggpubr)
-library(data.table)
-library(venn)
-library(ggplotify)
-library (viridis)
+libraries <- c("ggplot2", "ggpolypath", "ggpubr", "ggrepel", "data.table", 
+               "rstatix", "tximport", "DESeq2", "GenomicFeatures", "vsn", 
+               "pheatmap", "RColorBrewer", "EnhancedVolcano", "venn", 
+               "ggplotify", "viridis", "plyr")
+
+invisible(lapply(libraries, library, character.only = TRUE))
 
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
@@ -24,20 +11,18 @@ scientific_10 <- function(x) {
 
 #DESeq2
 
-####################################################################
-# Filtered clonal analysis
-####################################################################
+# Define and set the working directory
+wd <- "/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/RNA_seq/salmon"
+setwd(wd)
 
-#Read in the meta data and modify it for tximport
-wd <- ("/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/RNA_seq/salmon")
-dir <- system.file("extdata", package="tximportData")
-sample_dir <- ("/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/RNA_seq/salmon")
-setwd("/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/RNA_seq/salmon")
+# Read in the sample data
 samples <- read.table(file.path(wd,"samples.txt"), header=TRUE)
-rownames(samples) <- samples$sample
 
+# Set the row names
+rownames(samples) <- samples$sample
 samples_clonal <- samples[ which(samples$selection=='Clonal') ,]
 
+# Import salmon quants
 files <- file.path(wd,"quants", samples_clonal$sample, "quant.sf")
 txdb = makeTxDbFromGFF('TriTrypDB-59_TbruceiTREU927.gff')
 k <- keys(txdb, keytype = "TXNAME")
@@ -60,8 +45,9 @@ dds_clone <- DESeq(dds_clone)
 res <- results(dds_clone, name="stage_Pleomorph_vs_Monomorph")
 summary(res)
 dds_clone$group
+
 #Run per clone
-dds_clone$group <- factor(paste0(dds_clone$isolate, dds_clone$stage))
+dds_clone$group <- factor(paste0(dds_clone$clone, dds_clone$stage))
 design(dds_clone) <- ~ group
 dds_clone <- DESeq(dds_clone)
 
@@ -121,7 +107,7 @@ A7_sigdif <- combi_df[ which(combi_df$A7_padj == 0 | combi_df$A7_padj < 0.05 & c
 #write.csv(combi_df, 
 #          file="combi_results.csv")
 
-require(plyr)
+require()
 
 common_elements <- Reduce(intersect, list(A2_sigdif$rn, A4_sigdif$rn, A5_sigdif$rn, A6_sigdif$rn, A7_sigdif$rn));
 common_elements
@@ -146,7 +132,7 @@ ntd <- normTransform(dds_clone)
 select <- order(rowMeans(counts(dds_clone,normalized=TRUE)),
                 decreasing=TRUE)[1:20]
 
-df <- as.data.frame(colData(dds_clone)[,c("stage","isolate")])
+df <- as.data.frame(colData(dds_clone)[,c("stage","clone")])
 
 sampleDists <- dist(t(assay(vsd)))
 
@@ -155,21 +141,22 @@ rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep="-")
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 
-pcaData <- plotPCA(vsd, intgroup=c("stage", "isolate"), returnData=TRUE)
+pcaData <- plotPCA(vsd, intgroup=c("stage", "clone"), returnData=TRUE)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 
-b <- ggplot(pcaData, aes(PC1, PC2, color=isolate, shape=stage)) +
+b <- ggplot(pcaData, aes(PC1, PC2, color=stage, shape=clone)) +
   geom_point(size=3) +
   ylab(paste0("PC1: ",percentVar[1],"% variance")) +
   xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
   coord_fixed() +
-  theme(text = element_text(size = 15)) +
-  theme_bw ()
+  theme_bw () +
+  theme(text = element_text(size = 15)) + 
+  annotate("rect", xmin=c(-12,1), xmax=c(-1,9), ymin=c(-5,-5) , ymax=c(7,7), alpha=0, color=c("#F8766D", "#00BFC4"))
 
 mat <- assay(vsd)[ common_elements, ]
 
 mat  <- mat - rowMeans(mat)
-anno <- as.data.frame(colData(vsd)[, c("stage","isolate")])
+anno <- as.data.frame(colData(vsd)[, c("stage","clone")])
 
 d <- as.ggplot(pheatmap(mat, annotation_col = anno))
 
@@ -181,7 +168,7 @@ anno <- as.data.frame(colData(vsd)[, c("stage","isolate")])
 sa <- as.ggplot(pheatmap(mat, annotation_col = anno))
 
 diffs <- list(A2_sigdif$rn, A4_sigdif$rn, A5_sigdif$rn, A6_sigdif$rn, A7_sigdif$rn)
-c <- venn(diffs, snames = c("A2", "A4", "A5", "A6", "A7"), ilab=T, zcolor = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), ellipse = T,  ggplot = T, borders = T, box = F, ilcs = 1, sncs = 2)
+c <- venn(diffs, snames = c("A2", "A4", "A5", "A6", "A7"), ilabels = "counts", zcolor = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), ellipse = T,  ggplot = T, borders = T, box = F, ilcs = 1, sncs = 2)
 
 setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/go_term")
 
@@ -218,13 +205,13 @@ scientific_10 <- function(x) {
 setwd("/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/A1-A7")
 A1_7 <- read.csv("BHI_GC.csv")
 A1_7$BHI <- factor(A1_7$BHI, levels=c("HMI-9", "HMI-9:BHI"))
-A1_7 <-filter(A1_7, Selection != 'A1')
-A1_7 <-filter(A1_7, Selection != 'A3')
+A1_7 <-filter(A1_7, clone != 'A1')
+A1_7 <-filter(A1_7, clone != 'A3')
 A1_7$Hours <- as.numeric(A1_7$Hours)
 A1_7$BHI <- factor(A1_7$BHI, levels=c("HMI-9", "HMI-9:BHI"))
 
 a <- ggline(A1_7, x = "Hours", y = "Norm_density", add = c("mean_se", "jitter"),
-            color = "Selection", size = 1.5,
+            color = "clone", size = 1.5,
             facet.by = c("Competence", "BHI"), short.panel.labs = T, panel.labs = list(BHI = c("HMI-9", "HMI-9:BHI"))) +
   scale_y_continuous(label=scientific_10, limits = c(0, 3200000)) +
   xlab ("Hours") +
@@ -243,10 +230,6 @@ rb_zc_slim$BHI <- factor(rb_zc_slim$BHI, levels=c("HMI-9", "HMI-9:BHI"))
 rb_zc_slim %>%
   group_by(Dox, BHI, Hours) %>%
   get_summary_stats(Norm_density, type = "mean_sd")
-
-rb_zc_out$RBP10 %>%
-  group_by(Dox, BHI, Hours) %>%
-  identify_outliers(Norm_density)
 
 res.aov <- rb_zc_slim %>% 
   group_by(BHI) %>% 
@@ -276,7 +259,7 @@ e <- ggline(rb_zc_slim, x = "Hours", y = "Norm_density", add = c("mean_se", "jit
   stat_pvalue_manual(pwc, x = "Hours", label = "p.adj.signif", tip.length = 0, hide.ns = T, size = 5) 
 
 #RBP10 ZC3H20 IFA
-rb_zc_ifa <- read.csv("IFA.csv")
+rb_zc_ifa <- read.csv("ifa.csv")
 rb_zc_ifa <- filter(rb_zc_ifa, gene != "control")
 
 comparisons <- list( c("--", "+-"), c("--", "-+"), c("--", "++"), c("-+", "+-"), c("-+", "++"), c("+-", "++") )
@@ -285,22 +268,27 @@ rb_zc_ifa$total <- (rb_zc_ifa$X1K1N + rb_zc_ifa$X2K1N + rb_zc_ifa$X1K1N + rb_zc_
 rb_zc_ifa$dividing <- ((rb_zc_ifa$X2K2N + rb_zc_ifa$X2K1N) / rb_zc_ifa$total)*100
 rb_zc_ifa$pad <- ((rb_zc_ifa$pad) / rb_zc_ifa$total)*100
 
-f <- ggboxplot(rb_zc_ifa, x = 'line', y = 'dividing', facet.by = c("Gene"), short.panel.labs = T) + 
+dividing <- ggboxplot(rb_zc_ifa, x = 'line', y = 'dividing', facet.by = c("Gene"), short.panel.labs = T) + 
+  facet_wrap(c("gene"), scales = 'free_x') +
+  stat_compare_means(comparisons = comparisons, label = "p.signif", method = "t.test",  hide.ns = F) +
+  theme(text = element_text(size = 15)) +
+  ylab("1K1N/2K1N cells (%)") +
+  xlab("") +
+  ggtitle ("") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
+
+pad <- ggboxplot(rb_zc_ifa, x = 'line', y = 'pad', facet.by = c("Gene"), short.panel.labs = T) + 
   facet_wrap(c("gene"), scales = 'free_x') +
   stat_compare_means(comparisons = comparisons, label = "p.signif", method = "t.test",  hide.ns = F) +
   theme(text = element_text(size = 15)) +
   ylab("PAD+ (%)") +
   xlab("") +
-  ggtitle ("")
+  ggtitle ("") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
 
-
-g <- ggboxplot(rb_zc_ifa, x = 'line', y = 'pad', facet.by = c("Gene"), short.panel.labs = T) + 
-  facet_wrap(c("gene"), scales = 'free_x') +
-  stat_compare_means(comparisons = comparisons, label = "p.signif", method = "t.test",  hide.ns = F) +
-  theme(text = element_text(size = 15)) +
-  ylab("PAD+ (%)") +
-  xlab("") +
-  ggtitle ("")
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/ifa.tiff", units="in", width=8, height=8, res=300)
+ggarrange(dividing, pad, ncol = 1, nrow =2 , common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
+dev.off()
 
 #serial dilution plot
 setwd("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/Data/RBP10_ZC3H20/")
@@ -320,9 +308,9 @@ sb <- ggline(rb_zc, x = "Hours", y = "Norm_density", add = c("mean_se", "jitter"
   scale_color_discrete(name = "ng/ml")
 
 tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.4.tiff", units="in", width=15, height=15, res=300)
-ggarrange(a, b, c, d, e, f, g, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
+ggarrange(a, b, c, d, e, ncol = 2, nrow = 3, common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.S5.tiff", units="in", width=15, height=15, res=300)
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.S5.tiff", units="in", width=12, height=12, res=300)
 ggarrange(sa, sb, sc, sd, ncol = 2, nrow = 2,  common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

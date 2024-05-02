@@ -6,6 +6,7 @@ library(dplyr)
 library(tidyverse)
 library(ggpmisc)
 library(reshape2)
+library(ggh4x)
 
 #Pre-process data
 setwd("/Users/goldriev/keep/Store/PHD/TERGO/mono_variant_calling/CRISPR/BHI")
@@ -65,26 +66,30 @@ a <- ggline(Tb927.2.4020_df, x ="Hours", y = "Norm_density",
   ylab ("Parasites / ml") + 
   ggtitle ("Tb927.2.4020") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   theme(text = element_text(size = 12)) +  
   stat_pvalue_manual(x = "Hours", pwc_slim,  label = "p.adj.signif", tip.length = 0, hide.ns = T, color = 'group2', size = 5) 
 
 IFA_b <- rbind(IFA_out$`T. b. brucei_Tb927.2.4020`, IFA_out$`T.b.evansi type IVM-t1_Tb927.2.4020`, IFA_out$`T. b. brucei A/B 2_Tb927.2.4020`)
-IFA_b  <- melt(IFA_b[,c('spp', 'Line', 'BHI', '2K1N/2K2N','PAD')],)
+IFA_b  <- melt(IFA_b[,c('spp', 'Line', 'BHI', '2K1N/2K2N','PAD1')],)
 
 positions <- c("brucei", "ev.IVM-t1", "add-back")
+
+strip <- strip_themed(background_x = elem_list_rect(fill = c('#E3F2FD', '#E3F2FD', '#DCEDC8','#DCEDC8')))
 
 b <- ggplot(IFA_b, aes(x = spp, y = value)) + 
   geom_bar(aes(fill = variable), colour = "black", stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#999999", "#E69F00")) +
   ylim(0, 80) +
-  facet_wrap(c("BHI", "variable")) +
-  theme_minimal() + 
-  theme(text = element_text(size = 12)) +
+  theme_bw() + 
   ylab("%") +
   xlab("") +
   ggtitle ("Tb927.2.4020") +
   theme(plot.title = element_text(hjust = 0.5)) +
-  scale_x_discrete(limits = positions)
+  theme(plot.title = element_text(face = "bold")) +
+  theme(text = element_text(size = 12)) +
+  scale_x_discrete(limits = positions)  +
+  facet_wrap2(BHI ~ variable, strip = strip)
 
 #Tb927.5.2580
 
@@ -124,12 +129,13 @@ c <- ggline(Tb927.5.2580_df, x ="Hours", y = "Norm_density",
   ylab ("Parasites / ml") + 
   ggtitle ("Tb927.5.2580") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   theme(text = element_text(size = 12)) +
   stat_pvalue_manual(x = "Hours", pwc_slim,  label = "p.adj.signif", tip.length = 0, hide.ns = T, color = 'group2', size = 5) 
 
 IFA_d <- rbind(IFA_out$`T. b. brucei_Tb927.5.2580`, IFA_out$`T. b. evansi type A_Tb927.5.2580`, IFA_out$`Add-back evansi A/ evansi A_Tb927.5.2580`)
 
-IFA_d  <- melt(IFA_d[,c('spp', 'Line', 'BHI', '2K1N/2K2N','PAD')],)
+IFA_d  <- melt(IFA_d[,c('spp', 'Line', 'BHI', '2K1N/2K2N','PAD1')],)
 
 positions <- c("brucei", "ev.A", "add-back")
 
@@ -137,15 +143,16 @@ d <- ggplot(IFA_d, aes(x = spp, y = value)) +
   geom_bar(aes(fill = variable), colour = "black", stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#999999", "#E69F00")) +
   ylim(0, 80) +
-  facet_wrap(c("BHI", "variable")) +
-  theme_minimal() + 
-  theme(text = element_text(size = 12)) +
+  theme_bw() + 
   ylab("%") +
   xlab("") +
   ggtitle ("Tb927.5.2580") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   theme(legend.position = "right") +
-  scale_x_discrete(limits = positions)
+  theme(text = element_text(size = 12)) +
+  scale_x_discrete(limits = positions) +
+  facet_wrap2(BHI ~ variable, strip = strip)
 
 Tb927.11.3400_df <- rbind(out$'11_WT_3_Tb927.11.3400', out$'11_OVI_2_Tb927.11.3400', out$'11_BoTat_2_Tb927.11.3400')
 Tb927.11.3400_df$Oligopeptides <- factor(Tb927.11.3400_df$Oligopeptides, levels=c("HMI-9", "HMI-9:BHI"))
@@ -183,6 +190,7 @@ e <- ggline(Tb927.11.3400_df, x ="Hours", y = "Norm_density",
   ylab ("Parasites / ml") + 
   ggtitle ("Tb927.11.3400") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   theme(text = element_text(size = 12)) +
   stat_pvalue_manual(x = "Hours", pwc_slim,  label = "p.adj.signif", tip.length = 0, hide.ns = T, color = 'group2', size = 5) 
 
@@ -208,11 +216,12 @@ f <- ggboxplot(motility, x = "SPP", y = "MEAN_STRAIGHT_LINE_SPEED",
   xlab ("Clade") +
   ggtitle ("Tb927.11.3400") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   theme(text = element_text(size = 12))  + 
   guides(color = FALSE, size = FALSE) +
   labs(fill="Clade")
 
-tiff("/Users/s1886853/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/Fig.2.tiff", units="in", width=13, height=15, res=300)
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/Fig.2.tiff", units="in", width=13, height=15, res=300)
 ggarrange(a, b, c, d, e, f, ncol = 2, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL, padding = unit(1000,"line"))) 
 dev.off()
 
@@ -230,6 +239,7 @@ sa <- ggline(Tb927.2.4020_supp_df, x ="Hours", y = "Norm_density",
              color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("Tb927.2.4020") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
@@ -247,6 +257,7 @@ sb <- ggline(Tb927.8.1530_df, x ="Hours", y = "Norm_density",
              color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("Tb927.8.1530") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
@@ -264,6 +275,7 @@ sc <- ggline(Tb927.11.6600_df, x ="Hours", y = "Norm_density",
              color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("Tb927.11.6600") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
@@ -282,6 +294,7 @@ sd <- ggline(Tb927.4.3650_df, x ="Hours", y = "Norm_density",
              color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("Tb927.4.3650") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
@@ -300,6 +313,7 @@ se <- ggline(G224S_df, x ="Hours", y = "Norm_density",
              color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("G224S") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
@@ -318,11 +332,12 @@ sf <- ggline(A149P_df, x ="Hours", y = "Norm_density",
        color = "Clade.1", facet.by = "Oligopeptides", palette = pal) +
   ggtitle ("A149P") +
   theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
   scale_y_continuous(label=scientific_10) +
   ylab ("Parasites / ml") + 
   labs(color="Clade") +
   theme(text = element_text(size = 12)) 
 
-tiff("/Users/s1886853/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/S3.tiff", units="in", width=12, height=12, res=300)
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/S3.tiff", units="in", width=12, height=12, res=300)
 ggarrange(sa, sb, sc, sd, se, sf, ncol = 2, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

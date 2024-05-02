@@ -53,7 +53,7 @@ dnds_list <- list(eva_dnds, evb_dnds, evi_dnds, ovi_dnds, botat_dnds)
 
 circlize_plot = function() {
   circos.par("track.height" = 0.15, cell.padding = c(0, 0, 0, 0), "clock.wise" = T, "gap.after" = 10)
-  circos.par(gap.after = c(rep(1, 10), 15))
+  circos.par(gap.after = c(rep(1, 10), 20))
   circos.genomicInitialize(chr,sector.names = c("1","2", "3", "4", "5", "6", "7", "8", "9", "10", "11"), labels.cex = 0.8)
   col_mat <-  c("darkred", "darkgreen", "#643F95", "gold", "darkorange")
   circos.genomicDensity(variant_list, col = col_mat, baseline = 0, area = F, window.size = 200000, count_by = c("percent"))
@@ -70,20 +70,25 @@ circlize_plot = function() {
     circos.genomicTrack(x, ylim =c(0,0.01), track.height = 0.02, panel.fun = function(region, value, ...) {
       circos.genomicRect(region, value, col = "black", border = NA)
     })}
-  #col_mat <-  c("darkred", "#643F95", "darkgreen", "gold", "darkorange")
-  #lgd_points = Legend(at = c("ev.a", "ev.b", "ev.IVM-t1", "ovi", "botat"), type = "lines", 
-  #                    legend_gp = gpar(col = col_mat), title_position = "topleft", 
-  #                    title = "Clade")
-  #draw(lgd_points, x = unit(240, "mm"), y = unit(125, "mm"), just = c("left", "bottom"))
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.705, 0.02), border = NA, lwd = 2, lty = 1, col = "darkred")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.665, 0.02), border = NA, lwd = 2, lty = 1, col = "darkgreen")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.625, 0.02), border = NA, lwd = 2, lty = 1, col = "#643F95")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.585, 0.02), border = NA, lwd = 2, lty = 1, col = "gold")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.545, 0.02), border = NA, lwd = 2, lty = 1, col = "darkorange")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.335, 0.02), border = NA, lwd = 2, lty = 1, col = "darkred")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.295, 0.02), border = NA, lwd = 2, lty = 1, col = "darkgreen")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.255, 0.02), border = NA, lwd = 2, lty = 1, col = "#643F95")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.215, 0.02), border = NA, lwd = 2, lty = 1, col = "gold")
+  draw.sector(0, 360, rou1 = 0.015, center = c(0.175, 0.02), border = NA, lwd = 2, lty = 1, col = "darkorange")
   circos.clear()
 }
 
 circlize_plot()
 
-text(.27, .03, substitute(paste(bold("ROH"))), family = "helvetica", cex = 0.6)
-text(.43, .03, substitute(paste(bold("dN/dS"))), family = "helvetica", cex = 0.6)
-text(.63, .03, substitute(paste(bold("CNV"))), family = "helvetica", cex = 0.6)
-text(.81, .03, substitute(paste(bold("SNP"))), family = "helvetica", cex = 0.6)
+text(.27, .06, substitute(paste(bold("ROH"))), family = "helvetica", cex = 0.6)
+text(.43, .06, substitute(paste(bold("dN/dS"))), family = "helvetica", cex = 0.6)
+text(.63, .06, substitute(paste(bold("CNV"))), family = "helvetica", cex = 0.6)
+text(.81, .06, substitute(paste(bold("SNP"))), family = "helvetica", cex = 0.6)
 
 p1 <- recordPlot() 
 ggdraw(p1)
@@ -101,7 +106,7 @@ a <- ggtree(tree, layout="circular") +
   geom_hilight(node=c(5,6,7,8), fill='gold', alpha=0.3, extend=0.1) +
   geom_hilight(node=c(23,24), fill="darkred", alpha=0.5, extend=0.085) +
   geom_hilight(node=c(22), fill="darkred", alpha=0.5, extend = 0.07) +
-  geom_hilight(node=c(53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83), 
+  geom_hilight(node=c(56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83), 
                fill="darkgreen", alpha=0.3, extend=0.075) +
   theme_tree(legend.position=c(0.5, 0.4)) + 
   scale_fill_manual(values=c("white", "grey", "black"), guide='legend', 
@@ -111,10 +116,10 @@ a <- ggtree(tree, layout="circular") +
   guides(fill = F) + 
   geom_treescale(offset = -2, width = 0.05, linesize = 1, x = 0, y = 0)
 
-myPlots = list(p1,a)
+fig1_plots = list(p1,a)
 
-tiff("/Users/s1886853/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.1.tiff", units="in", width=6, height=10, res=300)
-ggarrange(plotlist = myPlots, ncol = 1, nrow = 2, labels = c("b", "a"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.1.tiff", units="in", width=6, height=10, res=300)
+ggarrange(plotlist = fig1_plots, ncol = 1, nrow = 2, labels = c("b", "a"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
 setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/go_term/")
@@ -234,7 +239,7 @@ dnds <- read.csv("dnds.txt",header=TRUE)
 
 keycol <- "Gene ID"
 valuecol <- "dnds"
-gathercols <- c("background", "T.b.evansi.type.A", "T.b.evansi.type.B", "T.b.evansi.type.IVM.t1", "T.b.equiperdum.type.OVI", "T.b.equiperdum.type.BoTat")
+gathercols <- c("T.b.evansi.type.A", "T.b.evansi.type.B", "T.b.evansi.type.IVM.t1", "T.b.equiperdum.type.OVI", "T.b.equiperdum.type.BoTat")
 
 dnds_long <- gather(dnds, keycol, valuecol, gathercols)
 dnds_long$keycol <- sub('T.b.evansi.type.A','ev.A', dnds_long$keycol)
@@ -246,17 +251,19 @@ dnds_long$keycol <- sub('T.b.equiperdum.type.BoTat','BoTat',dnds_long$keycol)
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
 }
+dnds_long$change <- dnds_long$valuecol-dnds_long$background
 
-ggplot(dnds_long, aes(x=keycol, y=log(valuecol+1), colour=keycol)) +
-  geom_boxplot(binaxis = "y", stackdir = "center", position = "dodge") +
-  facet_wrap(~ Category, ncol = 2) +
-  labs(colour="Category") +
-  theme_bw (base_size = 15) +
-  xlab("dN/dS (LFC background/ clade)") +
-  ylab('') +
-  ggtitle("") + 
-  theme(legend.position="top") 
+dnds_filtered <- dnds_long %>%  filter(change > -50)
 
-tiff("/Users/s1886853/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.S1.tiff", units="in", width=15, height=20, res=300)
-ggarrange(ovi_cnv_go_plot, ev_a_go_plot, ev_b_go_plot, ev_c_go_plot, ovi_go_plot, botat_go_plot, ovi_roh_go_plot, dnds, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("h"), labels = "auto", font.label = list(size = 20, color = "black", face = "bold", family = NULL))
+dnds_plot <- ggplot(dnds_long, aes(x=(valuecol), y=keycol, colour=Category)) +
+  geom_density_ridges(alpha = 0) +
+  scale_y_discrete(expand = expansion(add = c(.3, 1.8))) +
+  theme_bw() + 
+  ggtitle ("dN/dS") +
+  ylab("") +
+  xlab("dN/dS") +
+  theme(text = element_text(size = 15)) 
+
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.S1.tiff", units="in", width=15, height=20, res=300)
+ggarrange(ovi_cnv_go_plot, ev_a_go_plot, ev_b_go_plot, ev_c_go_plot, ovi_go_plot, botat_go_plot, dnds_plot, ovi_roh_go_plot, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("h"), labels = "auto", font.label = list(size = 20, color = "black", face = "bold", family = NULL))
 dev.off()
