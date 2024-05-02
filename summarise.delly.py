@@ -15,29 +15,14 @@ mask = ((df[pleo] > 1) & (df[pleo] < 3)).all(1)
 pleo_df = df[mask]
 
 # Create csv for clade specific CNVs
-mask = ((pleo_df[evansi_a] <= 1) | (pleo_df[evansi_a] >= 3)).all(1)
-evansi_a_df = pleo_df[mask]
-evansi_a_df['mean'] = evansi_a_df[evansi_a].mean(axis=1)
+def create_clade_csv(df, clade, output_file):
+    mask = ((df[clade] <= 1) | (df[clade] >= 3)).all(1)
+    clade_df = df[mask]
+    clade_df['mean'] = clade_df[clade].mean(axis=1)
+    clade_df[['CHROM', 'START', 'END', 'mean']].to_csv(output_file, sep=' ', index=False, header=False)
 
-mask = ((pleo_df[evansi_b] <= 1) | (pleo_df[evansi_b] >= 3)).all(1)
-evansi_b_df = pleo_df[mask]
-evansi_b_df['mean'] = evansi_b_df[evansi_b].mean(axis=1)
-
-mask = ((pleo_df[evansi_c] <= 1) | (pleo_df[evansi_c] >= 3)).all(1)
-evansi_c_df = pleo_df[mask]
-evansi_c_df['mean'] = evansi_c_df[evansi_c].mean(axis=1)
-
-mask = ((pleo_df[equi_ovi] <= 1) | (pleo_df[equi_ovi] >= 3)).all(1)
-equi_ovi_df = pleo_df[mask]
-equi_ovi_df['mean'] = equi_ovi_df[equi_ovi].mean(axis=1)
-
-mask = ((pleo_df[equi_botat] <= 1) | (pleo_df[equi_botat] >= 3)).all(1)
-equi_botat_df = pleo_df[mask]
-equi_botat_df['mean'] = equi_botat_df[equi_botat].mean(axis=1)
-
-#Export csv
-evansi_a_df[['CHROM', 'START', 'END','mean']].to_csv("data/circos/evansi_a_cnv.txt", sep=' ', index=False, header=False)
-evansi_b_df[['CHROM', 'START', 'END','mean']].to_csv("data/circos/evansi_b_cnv.txt", sep=' ', index=False, header=False)
-evansi_c_df[['CHROM', 'START', 'END','mean']].to_csv("data/circos/evansi_c_cnv.txt", sep=' ', index=False, header=False)
-equi_ovi_df[['CHROM', 'START', 'END','mean']].to_csv("data/circos/equi_ovi_cnv.txt", sep=' ', index=False, header=False)
-equi_botat_df[['CHROM', 'START', 'END','mean']].to_csv("data/circos/equi_botat_cnv.txt", sep=' ', index=False, header=False)
+create_clade_csv(pleo_df, evansi_a, "data/circos/evansi_a_cnv.txt")
+create_clade_csv(pleo_df, evansi_b, "data/circos/evansi_b_cnv.txt")
+create_clade_csv(pleo_df, evansi_c, "data/circos/evansi_c_cnv.txt")
+create_clade_csv(pleo_df, equi_ovi, "data/circos/equi_ovi_cnv.txt")
+create_clade_csv(pleo_df, equi_botat, "data/circos/equi_botat_cnv.txt")

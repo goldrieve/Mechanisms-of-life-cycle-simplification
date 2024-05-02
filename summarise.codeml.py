@@ -4,7 +4,7 @@ import numpy as np
 import re
 
 #Load files and preprocess
-directory = "/Users/s1886853/datastore/Raw_data/monomorph/data/codeml/"
+directory = "/Volumes/matthews/Guy/Raw_data/monomorph/data/codeml/"
 code = pd.read_table(directory + "codeml/codeml.txt", sep = "_", names = ["source_id", "txt", "dn", "dn/ds"])
 dnds = code['dn'].str.split(' ',expand=True)[[5,6,7,8,9,10]]
 dnds["source_id"] = code["source_id"]
@@ -56,16 +56,23 @@ ridges_dnds.to_csv(directory + 'dnds.txt', index=False, header = True, sep = ','
 
 #Clade dnds
 
-dnds.query('ev_a>1 & background <1').replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)['Genomic Location (Gene)'].str.split("(", expand = True)[0].to_csv(directory + '../circos/evansi_a_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ev_b>1 & background <1').replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)['Genomic Location (Gene)'].str.split("(", expand = True)[0].to_csv(directory + '../circos/evansi_b_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ivmt1>1 & background <1').replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)['Genomic Location (Gene)'].str.split("(", expand = True)[0].to_csv(directory + '../circos/evansi_c_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ovi>1 & background <1').replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)['Genomic Location (Gene)'].str.split("(", expand = True)[0].to_csv(directory + '../circos/equi_ovi_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('botat>1 & background <1').replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)['Genomic Location (Gene)'].str.split("(", expand = True)[0].to_csv(directory + '../circos/equi_botat_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ev_a>1 & ev_b>1 & ivmt1>1 & ovi>1 & botat>1 & background <1').to_csv(directory + '../circos/common_dnds.txt', index=False, header = True, sep = ',')
+def process_and_save(df, query, column, filename, header=False):
+    df.query(query).replace(':', ' ', regex=True).replace(',', '', regex=True).replace('\.\.+', ' ', regex=True)[column].str.split("(", expand = True)[0].to_csv(filename, index=False, header=header, sep = ',')
 
-dnds.query('ev_a>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/evansi_a_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ev_b>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/evansi_b_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ivmt1>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/evansi_c_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ovi>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/equi_ovi_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('botat>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/equi_botat_dnds.txt', index=False, header = False, sep = ',')
-dnds.query('ev_a>1 & ev_b>1 & ivmt1>1 & ovi>1 & botat>1 & background <1')['Gene ID'].to_csv(directory + '../codeml/clade_dnds/common_dnds.txt', index=False, header = False, sep = ',')
+queries = [
+    ('ev_a>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/evansi_a_dnds.txt'),
+    ('ev_b>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/evansi_b_dnds.txt'),
+    ('ivmt1>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/evansi_c_dnds.txt'),
+    ('ovi>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/equi_ovi_dnds.txt'),
+    ('botat>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/equi_botat_dnds.txt'),
+    ('ev_a>1 & ev_b>1 & ivmt1>1 & ovi>1 & botat>1 & background <1', 'Genomic Location (Gene)', directory + '../circos/common_dnds.txt', True),
+    ('ev_a>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/evansi_a_dnds.txt'),
+    ('ev_b>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/evansi_b_dnds.txt'),
+    ('ivmt1>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/evansi_c_dnds.txt'),
+    ('ovi>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/equi_ovi_dnds.txt'),
+    ('botat>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/equi_botat_dnds.txt'),
+    ('ev_a>1 & ev_b>1 & ivmt1>1 & ovi>1 & botat>1 & background <1', 'Gene ID', directory + '../codeml/clade_dnds/common_dnds.txt')
+]
+
+for query, column, filename, *header in queries:
+    process_and_save(dnds, query, column, filename, *header)

@@ -29,15 +29,15 @@ trimmed_rv_1 = pd.DataFrame(trimmed_rv)
 trimmed_fwd_1 = pd.DataFrame(trimmed_fwd)
 reads_fwd_1 = pd.DataFrame(reads_fwd)
 reads_rv_1 = pd.DataFrame(reads_rv)
-trimmed_rv_1 = trimmed_rv_1[0].str.split(',',expand=True)
-trimmed_rv_1 = trimmed_rv_1.rename(columns={0: "isolate", 1: "trim_rv"})
-trimmed_fwd_1 = trimmed_fwd_1[0].str.split(',',expand=True)
-trimmed_fwd_1 = trimmed_fwd_1.rename(columns={0: "isolate", 1: "trimmed_fwd"})
-reads_fwd_1 = reads_fwd_1[0].str.split(',',expand=True)
-reads_fwd_1 = reads_fwd_1.rename(columns={0: "isolate", 1: "reads_fwd"})
-reads_rv_1 = reads_rv_1[0].str.split(',',expand=True)
-reads_rv_1 = reads_rv_1.rename(columns={0: "isolate", 1: "reads_rv"})
+
+column_names = ["isolate", "trim_rv", "trimmed_fwd", "reads_fwd", "reads_rv"]
+trimmed_rv_1 = trimmed_rv_1[0].str.split(',', expand=True).rename(columns={0: "isolate", 1: "trim_rv"})
+trimmed_fwd_1 = trimmed_fwd_1[0].str.split(',', expand=True).rename(columns={0: "isolate", 1: "trimmed_fwd"})
+reads_fwd_1 = reads_fwd_1[0].str.split(',', expand=True).rename(columns={0: "isolate", 1: "reads_fwd"})
+reads_rv_1 = reads_rv_1[0].str.split(',', expand=True).rename(columns={0: "isolate", 1: "reads_rv"})
+
 trimmed_df = pd.merge(trimmed_rv_1, trimmed_fwd_1, on="isolate", how="inner")
 reads_df = pd.merge(reads_rv_1, reads_fwd_1, on="isolate", how="inner")
 merged_df = pd.merge(trimmed_df, reads_df, on="isolate", how="inner")
+
 merged_df.to_csv("data/stats/fastqc_stats.csv", sep=',', index=False)

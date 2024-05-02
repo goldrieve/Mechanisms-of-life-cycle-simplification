@@ -343,7 +343,7 @@ rule shuffle_variants:
                 "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf"
         output:
                 "data/circos/T.b.equitypeBOTAT.vcf_variant.shuf"
-        message: ''' --- shuffle variants --- '''
+        message: ''' --- shuffle variants - extract equal number of variants based on lowest number (17820) --- '''
         threads: 16
         log:
                 "logs/shuffle.log"
