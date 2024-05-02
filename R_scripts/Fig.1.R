@@ -1,72 +1,58 @@
-library(ggplot2)
-library(ggrepel)
-library(RColorBrewer)
-library (ggpubr)
-library(dplyr)
-library(ggridges)
-library(splitstackshape)
-library(tidyr)
-library(circlize)
-library(ComplexHeatmap)
-library(viridis)
-library(ggplotify)
-library(gridBase)
-library(ape)
-library(Biostrings)
-library(ggtree)
-library(treeio)
-library(phytools)
-library(cowplot)
-library(gridExtra)
+# Define libraries
+libraries <- c("ggplot2", "ggrepel", "RColorBrewer", "ggpubr", "dplyr", "ggridges", 
+               "splitstackshape", "tidyr", "circlize", "viridis", 
+               "ggplotify", "gridBase", "ape", "Biostrings", "ggtree", "treeio", 
+               "phytools", "cowplot", "gridExtra")
+# Load   
+invisible(lapply(libraries, library, character.only = TRUE))
 
+# Set up working directory
 setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/circos")
 
+# Read in chromosome data
 chr <- read.table('chr.txt')
-eva_variants <- read.table('T.b.evansitypeA.vcf.variants.shuf', header=F)
-evb_variants <- read.table('T.b.evansitypeB.vcf.variants.shuf', header=F)
-evi_variants <- read.table('T.b.evansitypeC.vcf.variants.shuf', header=F)
-ovi_variants <- read.table('T.b.equitypeOVI.vcf.variants.shuf', header=F)
-botat_variants <- read.table('T.b.equitypeBOTAT.vcf.variants.shuf', header=F)
 
-eva_roh <- read.table('evansi_a_roh.txt', header=F)
-evb_roh <- read.table('evansi_b_roh.txt', header=F)
-evi_roh <- read.table('evansi_c_roh.txt', header=F)
-ovi_roh <- read.table('equi_ovi_roh.txt', header=T, col.names = c('chr','start','stop'))
-botat_roh <- read.table('equi_botat_roh.txt', header=F)
+# Define files
+file_lists <- list(
+  shuf_files = c('T.b.evansitypeA.vcf.variants.shuf', 'T.b.evansitypeB.vcf.variants.shuf', 
+                 'T.b.evansitypeC.vcf.variants.shuf', 'T.b.equitypeOVI.vcf.variants.shuf', 
+                 'T.b.equitypeBOTAT.vcf.variants.shuf'),
+  roh_files = c('evansi_a_roh.txt', 'evansi_b_roh.txt', 
+                'evansi_c_roh.txt', 'equi_ovi_roh.txt', 
+                'equi_botat_roh.txt'),
+  cnv_files = c('evansi_a_cnv.txt', 'evansi_b_cnv.txt', 
+                'evansi_c_cnv.txt', 'equi_ovi_cnv.txt', 
+                'equi_botat_cnv.txt'),
+  dnds_files = c('evansi_a_dnds.txt', 'evansi_b_dnds.txt', 
+                 'evansi_c_dnds.txt', 'equi_ovi_dnds.txt', 
+                 'equi_botat_dnds.txt')
+)
 
-eva_cnv <- read.table('evansi_a_cnv.txt', header=F)
-evb_cnv <- read.table('evansi_b_cnv.txt', header=F)
-evi_cnv <- read.table('evansi_c_cnv.txt', header=F)
-ovi_cnv <- read.table('equi_ovi_cnv.txt', header=F)
-botat_cnv <- read.table('equi_botat_cnv.txt', header=F)
+# Function to read files
+read_files <- function(files) {
+  lapply(files, read.table, header = F)
+}
 
-eva_dnds <- read.table('evansi_a_dnds.txt', header=F)
-evb_dnds <- read.table('evansi_b_dnds.txt', header=F)
-evi_dnds <- read.table('evansi_c_dnds.txt', header=F)
-ovi_dnds <- read.table('equi_ovi_dnds.txt', header=F)
-botat_dnds <- read.table('equi_botat_dnds.txt', header=F)
+# Read files
+file_data <- lapply(file_lists, read_files)
 
-variant_list <- list(eva_variants, evb_variants, evi_variants, ovi_variants, botat_variants)
-roh_list <- list(eva_roh, evb_roh, evi_roh, ovi_roh, botat_roh)
-cnv_list <- list(eva_cnv, evb_cnv, evi_cnv, ovi_cnv, botat_cnv)
-dnds_list <- list(eva_dnds, evb_dnds, evi_dnds, ovi_dnds, botat_dnds)
-
+# Plot circos 
 circlize_plot = function() {
   circos.par("track.height" = 0.15, cell.padding = c(0, 0, 0, 0), "clock.wise" = T, "gap.after" = 10)
   circos.par(gap.after = c(rep(1, 10), 20))
   circos.genomicInitialize(chr,sector.names = c("1","2", "3", "4", "5", "6", "7", "8", "9", "10", "11"), labels.cex = 0.8)
   col_mat <-  c("darkred", "darkgreen", "#643F95", "gold", "darkorange")
-  circos.genomicDensity(variant_list, col = col_mat, baseline = 0, area = F, window.size = 200000, count_by = c("percent"))
+  circos.genomicDensity(file_data$shuf_files, col = col_mat, baseline = 0, area = F, window.size = 200000, count_by = c("percent"))
   f = colorRamp2(breaks = c(1.9, 2.1), colors = c("darkblue", "red"))
   
-  for (x in cnv_list) {
+  for (x in file_data$cnv_files) {
     circos.genomicTrack(x, ylim =c(0,0.01), track.height = 0.02, panel.fun = function(region, value, ...) {
       i = getI(...)
       circos.genomicRect(region, value, col = f(value[[1]]), border = NA)})}
   
-  circos.genomicDensity(dnds_list, col = col_mat, baseline = 0, area = F, window.size = 200000, count_by = c("percent"))
+  circos.genomicDensity(file_data$dnds_files, col = col_mat, baseline = 0, area = F, window.size = 200000, count_by = c("percent"))
   
-  for (x in roh_list) {
+  for (x in file_data$roh_files) {
     circos.genomicTrack(x, ylim =c(0,0.01), track.height = 0.02, panel.fun = function(region, value, ...) {
       circos.genomicRect(region, value, col = "black", border = NA)
     })}
@@ -85,18 +71,22 @@ circlize_plot = function() {
 
 circlize_plot()
 
+# Add text to circos plot
 text(.27, .06, substitute(paste(bold("ROH"))), family = "helvetica", cex = 0.6)
 text(.43, .06, substitute(paste(bold("dN/dS"))), family = "helvetica", cex = 0.6)
 text(.63, .06, substitute(paste(bold("CNV"))), family = "helvetica", cex = 0.6)
 text(.81, .06, substitute(paste(bold("SNP"))), family = "helvetica", cex = 0.6)
 
+# Draw image to create ggplot
 p1 <- recordPlot() 
 ggdraw(p1)
 
-tree <- treeio::read.newick("~/Google Drive/My Drive/Developmental_competence_ms/Data/RpPVmHuFdPEBY8WfDi-Gww_newick.txt", node.label="support")
+# Load tree file 
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.1")
+tree <- treeio::read.newick("tree.txt", node.label="support")
 root <- rootnode(tree)  
-#tree <- treeio::read.newick("/Volumes/matthews/Guy/Raw_data/monomorph/data/tree/strict_snps.genotyped.fasta.varsites.phy.contree", node.label="support")
 
+# Plot tree
 a <- ggtree(tree, layout="circular") + 
   geom_tiplab(size = 1.5) +
   geom_point2(aes(subset=!isTip & node != root & as.numeric(support) < 100, 
@@ -118,143 +108,62 @@ a <- ggtree(tree, layout="circular") +
 
 fig1_plots = list(p1,a)
 
+# Export plot
 tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.1.tiff", units="in", width=6, height=10, res=300)
 ggarrange(plotlist = fig1_plots, ncol = 1, nrow = 2, labels = c("b", "a"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
+# Load gene ontology data for S1
+
 setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/go_term/")
-ovi_cnv_go <- read.csv("ovi_cnv_go.csv")
-botat_roh_go <- read.csv("botat_roh_go.csv")
-ovi_roh_go <- read.csv("ovi_roh_go.csv")
-common_go <- read.csv("common_dnds_go.csv")
-ev_a_go <- read.csv("evansi_a_dnds_go.csv")
-ev_b_go <- read.csv("evansi_b_dnds_go.csv")
-ev_c_go <- read.csv("evansi_c_dnds_go.csv")
-ovi_go <- read.csv("equi_ovi_dnds_go.csv")
-botat_go <- read.csv("equi_botat_dnds_go.csv")
 
-ovi_cnv_go_slim <- filter(ovi_cnv_go, Benjamini <= 0.05)
-ovi_roh_go_slim <- filter(ovi_roh_go, Benjamini <= 0.05)
-botat_roh_go_slim <- filter(botat_roh_go, Benjamini <= 0.05)
-common_go_slim <- filter(common_go, Benjamini <= 0.05)
-ev_a_go_slim <- filter(ev_a_go, Benjamini <= 0.05)
-ev_b_go_slim <- filter(ev_b_go, Benjamini <= 0.05)
-ev_c_go_slim <- filter(ev_c_go, Benjamini <= 0.05)
-ovi_go_slim <- filter(ovi_go, Benjamini <= 0.05)
-botat_go_slim <- filter(botat_go, Benjamini <= 0.05)
+# Function to read, filter and plot data
+process_data <- function(file_name, title) {
+  data <- read.csv(file_name)
+  data_slim <- filter(data, Benjamini <= 0.05)
+  
+  plot <- ggplot(data_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
+    geom_point(shape=21) +
+    scale_fill_viridis(discrete=F, option="magma") +
+    scale_size(range = c(2, 6), name = "Result count") +
+    theme_minimal() +
+    ggtitle (title) +
+    ylab("") +
+    xlab("Fold enrichment") +
+    theme(text = element_text(size = 15))
+  
+  return(plot)
+}
 
-ovi_cnv_go_plot <- ggplot(ovi_cnv_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(3, 5), name = "Result count") +
-  theme_minimal() +
-  ggtitle ("OVI CNV") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
+# Set working directory
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/go_term/")
 
-ovi_roh_go_plot <- ggplot(ovi_roh_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(3, 5), name = "Result count") +
-  theme_minimal() +
-  ggtitle ("OVI ROH") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
+# List of file names and corresponding titles
+file_names <- c("ovi_cnv_go.csv", "botat_roh_go.csv", "ovi_roh_go.csv", "common_dnds_go.csv", "evansi_a_dnds_go.csv", "evansi_b_dnds_go.csv", "evansi_c_dnds_go.csv", "equi_ovi_dnds_go.csv", "equi_botat_dnds_go.csv")
+titles <- c("OVI CNV", "BoTat ROH", "OVI ROH", "Common dN/dS", "ev.A dN/dS", "ev. B dN/dS", "ev. IVM-t1 dN/dS", "OVI dN/dS", "BoTat dN/dS")
 
-botat_roh_go_plot <- ggplot(botat_roh_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(3, 5), name = "Result count") +
-  theme_minimal() +
-  ggtitle ("BoTat ROH") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-common_go_plot <- ggplot(common_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(2, 6), name = "Result count") +
-  theme_minimal() +
-  ggtitle ("Common dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-ev_a_go_plot <- ggplot(ev_a_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(1,5), name = "Result count") +
-  theme_minimal() + 
-  ggtitle ("ev.A dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-ev_b_go_plot <- ggplot(ev_b_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(2, 6), name = "Result count") +
-  theme_minimal() + 
-  ggtitle ("ev. B dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-ev_c_go_plot <- ggplot(ev_c_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(2, 6), name = "Result count") +
-  theme_minimal() +
-  ggtitle ("ev. IVM-t1 dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-ovi_go_plot <- ggplot(ovi_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(2, 6), name = "Result count") +
-  theme_minimal() + 
-  ggtitle ("OVI dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
-
-botat_go_plot <- ggplot(botat_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichment), fill = Benjamini, size = Result.count)) +
-  geom_point(shape=21) +
-  scale_fill_viridis(discrete=F, option="magma") +
-  scale_size(range = c(2, 6), name = "Result count") +
-  theme_minimal() + 
-  ggtitle ("BoTat dN/dS") +
-  ylab("") +
-  xlab("Fold enrichment") +
-  theme(text = element_text(size = 15)) 
+# Plot for each file
+plots <- mapply(process_data, file_name = file_names, title = titles, SIMPLIFY = FALSE)
 
 #Supplementary figure S1
 setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/codeml")
 dnds <- read.csv("dnds.txt",header=TRUE)
 
+# Set up data structure
 keycol <- "Gene ID"
 valuecol <- "dnds"
 gathercols <- c("T.b.evansi.type.A", "T.b.evansi.type.B", "T.b.evansi.type.IVM.t1", "T.b.equiperdum.type.OVI", "T.b.equiperdum.type.BoTat")
 
-dnds_long <- gather(dnds, keycol, valuecol, gathercols)
-dnds_long$keycol <- sub('T.b.evansi.type.A','ev.A', dnds_long$keycol)
-dnds_long$keycol <- sub('T.b.evansi.type.B','ev.B', dnds_long$keycol)
-dnds_long$keycol <- sub('T.b.evansi.type.IVM.t1','ev.IVM-t1', dnds_long$keycol)
-dnds_long$keycol <- sub('T.b.equiperdum.type.OVI','OVI',dnds_long$keycol)
-dnds_long$keycol <- sub('T.b.equiperdum.type.BoTat','BoTat',dnds_long$keycol)
+# Make a long form dataframe
+dnds_long <- dnds %>%
+  gather(keycol, valuecol, gathercols) %>%
+  mutate(keycol = sub('T.b.evansi.type.A', 'ev.A', 
+                      sub('T.b.evansi.type.B', 'ev.B', 
+                          sub('T.b.evansi.type.IVM.t1', 'ev.IVM-t1', 
+                              sub('T.b.equiperdum.type.OVI', 'OVI',
+                                  sub('T.b.equiperdum.type.BoTat', 'BoTat', keycol))))))
 
-scientific_10 <- function(x) {
-  parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
-}
-dnds_long$change <- dnds_long$valuecol-dnds_long$background
-
-dnds_filtered <- dnds_long %>%  filter(change > -50)
-
+# Plot dnds
 dnds_plot <- ggplot(dnds_long, aes(x=(valuecol), y=keycol, colour=Category)) +
   geom_density_ridges(alpha = 0) +
   scale_y_discrete(expand = expansion(add = c(.3, 1.8))) +
@@ -264,6 +173,7 @@ dnds_plot <- ggplot(dnds_long, aes(x=(valuecol), y=keycol, colour=Category)) +
   xlab("dN/dS") +
   theme(text = element_text(size = 15)) 
 
+# Export plot
 tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.S1.tiff", units="in", width=15, height=20, res=300)
-ggarrange(ovi_cnv_go_plot, ev_a_go_plot, ev_b_go_plot, ev_c_go_plot, ovi_go_plot, botat_go_plot, dnds_plot, ovi_roh_go_plot, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("h"), labels = "auto", font.label = list(size = 20, color = "black", face = "bold", family = NULL))
+ggarrange(plots$ovi_cnv_go.csv, plots$evansi_a_dnds_go.csv, plots$evansi_b_dnds_go.csv, plots$evansi_c_dnds_go.csv, plots$equi_ovi_dnds_go.csv, plots$equi_botat_dnds_go.csv, dnds_plot, plots$ovi_roh_go.csv, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("h"), labels = "auto", font.label = list(size = 20, color = "black", face = "bold", family = NULL))
 dev.off()

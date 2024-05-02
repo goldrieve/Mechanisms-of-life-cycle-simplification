@@ -1,28 +1,24 @@
-library(ggplot2)
-library(ggpubr)
-library(ggrepel)
-library(tidyverse)
-library(rstatix)
-library(dplyr) 
-library(viridis) 
-library (gridExtra)
-library(ggpp)
-library(ggpmisc)
+# Libraries
+libraries <- c("ggplot2", "ggpubr", "ggrepel", "tidyverse", "rstatix", "dplyr", "viridis", "gridExtra", "ggpp", "ggpmisc")
 
-setwd("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.3/")
+# Load   
+invisible(lapply(libraries, library, character.only = TRUE))
+
+# Load data and calculate stats
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.3")
 vivo <- read.csv("Tb927.5.2580.csv")
-
 vivo$PAD_P <- (vivo$PAD/(vivo$X1K1N + vivo$X2K1N + vivo$X2K2N + vivo$Other))*100
 vivo$dividing <- ((vivo$X2K1N + vivo$X2K2N)/ vivo$Total)*100
 vivo$Clade <- factor(vivo$Clade, levels=c("brucei", "ev.A", "add-back"))
 
+# Set up
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
 }
 
-
 pal = c("black", "#E41A1C", "#387EB8")
 
+# Analyse 
 vivo %>%
   group_by(Clade, DPI) %>%
   get_summary_stats(cells.ml, type = "mean_sd")
@@ -113,7 +109,6 @@ pad <- ggline(filtered, x = "DPI", y = "PAD_P",
   xlim (4,9) +
   theme(text = element_text(size = 15)) +
   stat_pvalue_manual(pwc_slim,  label = "p.adj.signif", tip.length = 0, hide.ns = T, color = 'group2', size = 5) 
-
 
 pad_mouse <- ggline(vivo, x = "DPI", y = "PAD_P",  
                    size=1, 
