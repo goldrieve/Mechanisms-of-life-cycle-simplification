@@ -136,8 +136,8 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 b <- ggplot(pcaData, aes(PC1, PC2, color=stage, shape=clone)) +
   geom_point(size=3) +
-  ylab(paste0("PC1: ",percentVar[1],"% variance")) +
-  xlab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  ylab(paste0("PC1: ",percentVar[2],"% variance")) +
+  xlab(paste0("PC2: ",percentVar[1],"% variance")) + 
   coord_fixed() +
   theme_bw () +
   theme(text = element_text(size = 15)) + 
@@ -176,7 +176,7 @@ sd <- ggplot(common_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichme
   xlab("Fold enrichment") +
   theme(text = element_text(size = 18)) 
 
-setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/wet_lab/Fig.4")
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4")
 qpcr <- read.csv("rbp10_zc3h20_qpcr.csv")
 qpcr_out <- split( qpcr , f = qpcr$clone)
 

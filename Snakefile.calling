@@ -7,14 +7,14 @@ rule all:
 		"data/vcf_v1/filtered_calls.vcf",
 		"data/tree/strict_snps.genotyped.fasta.varsites.phy.contree",
 		"data/plink/plink.hom.overlap.txt",
-                "data/plink/plink.hom.overlap.csv",
-                #"logs/editing_overlap3.log",
+        "data/plink/plink.hom.overlap.csv",
+        "logs/editing_overlap3.log",
 		"data/circos/equi_ovi_roh.txt",
-                "data/snpeff/case_control.vcf",
-                "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf",
-        	"logs/extract.log",
-        	"logs/mkdir.log",
- #       	expand ("data/snpeff/lineage_specific/{lin}.vcf.dir/{lin}.snpeff", lin=LINS)
+        "data/snpeff/case_control.vcf",
+        "data/snpeff/lineage_specific/T.b.equitypeBOTAT.vcf",
+        "logs/extract.log",
+        "logs/mkdir.log",
+        expand ("data/snpeff/lineage_specific/{lin}.vcf.dir/{lin}.snpeff", lin=LINS)
 
 rule index_genome:
 	input:
