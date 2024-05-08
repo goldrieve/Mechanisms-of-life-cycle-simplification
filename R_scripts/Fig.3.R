@@ -187,6 +187,6 @@ tiff("Fig.3.tiff", units="in", width=12, height=10, res=300)
 ggarrange(cells, pad, dividing, d, ncol = 2, nrow = 2, common.legend = F, legend="top", align = c("h"), labels = c("a", "b", "c", "d"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
-tiff("Fig.S4.tiff", units="in", width=12, height=10, res=300)
+tiff("Fig.S5.tiff", units="in", width=12, height=10, res=300)
 ggarrange(cells_mouse, pad_mouse, dividing_mouse, ncol = 2, nrow = 2, common.legend = T, legend="top", align = c("h"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

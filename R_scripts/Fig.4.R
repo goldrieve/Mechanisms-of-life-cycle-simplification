@@ -44,7 +44,6 @@ dds_clone <- ddsTxi_clone[keep_clone,]
 dds_clone <- DESeq(dds_clone)
 res <- results(dds_clone, name="stage_Pleomorph_vs_Monomorph")
 summary(res)
-dds_clone$group
 
 #Run per clone
 dds_clone$group <- factor(paste0(dds_clone$clone, dds_clone$stage))
@@ -157,7 +156,7 @@ mat <- assay(vsd)[ QS, ]
 mat  <- mat - rowMeans(mat)
 anno <- as.data.frame(colData(vsd)[, c("stage","isolate")])
 
-sa <- as.ggplot(pheatmap(mat, annotation_col = anno))
+sa <- as.ggplot(pheatmap(mat, annotation_col = anno, fontsize_row = 3))
 
 diffs <- list(sigdif_list$A2$rn, sigdif_list$A4$rn, sigdif_list$A5$rn, sigdif_list$A6$rn, sigdif_list$A7$rn)
 c <- venn(diffs, snames = c("A2", "A4", "A5", "A6", "A7"), ilabels = "counts", zcolor = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), ellipse = T,  ggplot = T, borders = T, box = F, ilcs = 1, sncs = 2)
@@ -243,34 +242,6 @@ e <- ggline(rb_zc_slim, x = "Hours", y = "Norm_density", add = c("mean_se", "jit
   theme(text = element_text(size = 15)) +
   stat_pvalue_manual(pwc, x = "Hours", label = "p.adj.signif", tip.length = 0, hide.ns = T, size = 5) 
 
-#RBP10 ZC3H20 IFA
-rb_zc_ifa <- read.csv("RBP10_ZC3H20_ifa.csv")
-rb_zc_ifa <- filter(rb_zc_ifa, gene != "control")
-
-rb_zc_ifa$total <- (rb_zc_ifa$X1K1N + rb_zc_ifa$X2K1N + rb_zc_ifa$X1K1N + rb_zc_ifa$other)
-rb_zc_ifa$dividing <- ((rb_zc_ifa$X2K2N + rb_zc_ifa$X2K1N) / rb_zc_ifa$total)*100
-rb_zc_ifa$pad <- ((rb_zc_ifa$pad) / rb_zc_ifa$total)*100
-
-dividing <- ggboxplot(rb_zc_ifa, x = 'line', y = 'dividing', facet.by = c("Gene"), short.panel.labs = T) + 
-  facet_wrap(c("gene"), scales = 'free_x') +
-  theme(text = element_text(size = 15)) +
-  ylab("1K1N/2K1N cells (%)") +
-  xlab("") +
-  ggtitle ("") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
-
-pad <- ggboxplot(rb_zc_ifa, x = 'line', y = 'pad', facet.by = c("Gene"), short.panel.labs = T) + 
-  facet_wrap(c("gene"), scales = 'free_x') +
-  theme(text = element_text(size = 15)) +
-  ylab("PAD+ (%)") +
-  xlab("") +
-  ggtitle ("") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
-
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/ifa.tiff", units="in", width=8, height=8, res=300)
-ggarrange(dividing, pad, ncol = 1, nrow =2 , common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
-dev.off()
-
 #serial dilution plot
 rb_zc$Conc <- as.character(rb_zc$Conc)
 
@@ -286,10 +257,33 @@ sb <- ggline(rb_zc, x = "Hours", y = "Norm_density", add = c("mean_se", "jitter"
   theme(text = element_text(size = 15)) + 
   scale_color_discrete(name = "ng/ml")
 
+#RBP10 ZC3H20 IFA
+rb_zc_ifa <- read.csv("RBP10_ZC3H20_ifa.csv")
+
+rb_zc_ifa$total <- (rb_zc_ifa$X1K1N + rb_zc_ifa$X2K1N + rb_zc_ifa$X1K1N + rb_zc_ifa$other)
+rb_zc_ifa$dividing <- ((rb_zc_ifa$X2K2N + rb_zc_ifa$X2K1N) / rb_zc_ifa$total)*100
+rb_zc_ifa$pad <- ((rb_zc_ifa$pad) / rb_zc_ifa$total)*100
+
+se <- ggboxplot(rb_zc_ifa, x = 'line', y = 'dividing', facet.by = c("Gene"), short.panel.labs = T) + 
+  facet_wrap(c("gene"), scales = 'free_x') +
+  theme(text = element_text(size = 15)) +
+  ylab("1K1N/2K1N cells (%)") +
+  xlab("") +
+  ggtitle ("") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
+
+sf <- ggboxplot(rb_zc_ifa, x = 'line', y = 'pad', facet.by = c("Gene"), short.panel.labs = T) + 
+  facet_wrap(c("gene"), scales = 'free_x') +
+  theme(text = element_text(size = 15)) +
+  ylab("PAD+ (%)") +
+  xlab("") +
+  ggtitle ("") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
+
 tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.4.tiff", units="in", width=15, height=15, res=300)
 ggarrange(a, b, c, d, e, ncol = 2, nrow = 3, common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.S5.tiff", units="in", width=12, height=12, res=300)
-ggarrange(sa, sb, sc, sd, ncol = 2, nrow = 2,  common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.S6.tiff", units="in", width=15, height=15, res=300)
+ggarrange(sa, sb, sc, sd, se, sf, ncol = 2, nrow = 3,  common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

@@ -113,8 +113,7 @@ d <- ifa_plot(IFA_d, "Tb927.5.2580", c("brucei", "ev.A", "add-back"))
 
 #Motility plot
 
-setwd("/Users/goldriev/keep/Store/PHD/TERGO/mono_variant_calling/CRISPR/FAZ41_motility/")
-motility <- read.csv("mash.csv")
+motility <- read.csv("motility.csv")
 motility$SPP <- factor(motility$SPP, levels=c("brucei", "BoTat", "OVI", "BoTat:add-back", "OVI:add-back"))
 
 faz_comparisons <- list( c("brucei", "OVI"), 
@@ -144,6 +143,43 @@ ggarrange(results_2.4020$plot, b, results_5.2580$plot, d, results_11.3400$plot, 
 dev.off()
 
 #Supplementary
+
+BHI <- read.csv("monomorph_bhi.csv")
+
+scientific_10 <- function(x) {
+  parse(text=gsub("e", " %*% 10^", scales::scientific_format()(x)))
+}
+
+BHI$change <- ((BHI$Density - BHI$Start)/ BHI$Start)*100
+coul <- brewer.pal(5,"Set3") 
+
+s2a <- ggline(BHI, x ="BHI", y = "Density", 
+            add = c("mean_se", "jitter"),  
+            size=1, 
+            add.params = list(size = 2),
+            color = "BHI", facet.by = "Line") +
+  scale_y_continuous(label = scientific_10) +
+  ylab ("Parasites / ml") +
+  xlab ("BHI (%)") +
+  scale_color_manual(values = coul)
+
+
+s2b <- ggline(BHI, x ="BHI", y = "change", 
+              add = c("mean_se", "jitter"),  
+              size=1, 
+              add.params = list(size = 2),
+              color = "BHI", facet.by = "Line") +
+  ylab ("Percentage change") +
+  xlab ("BHI (%)") +
+  scale_color_manual(values = coul)
+
+s2c <- ggplot() + 
+  theme_void() + 
+  ggtitle("") 
+
+tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/S2.tiff", units="in", width=8, height=14, res=300)
+ggarrange(s2a, s2b, s2c, ncol = 1, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL, padding = unit(1000,"line"))) 
+dev.off()
 
 #Tb927.2.4020
 
