@@ -113,7 +113,7 @@ d <- ifa_plot(IFA_d, "Tb927.5.2580", c("brucei", "ev.A", "add-back"))
 
 #Motility plot
 
-motility <- read.csv("~/Desktop/motility/combined.csv")
+motility <- read.csv("combined_motility.csv")
 motility$SPP <- factor(motility$SPP, levels=c("brucei", "BoTat", "OVI", "BoTat:add-back", "OVI:add-back"))
 
 faz_comparisons <- list( c("brucei", "OVI"), 
