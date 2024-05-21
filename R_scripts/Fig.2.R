@@ -113,7 +113,7 @@ d <- ifa_plot(IFA_d, "Tb927.5.2580", c("brucei", "ev.A", "add-back"))
 
 #Motility plot
 
-motility <- read.csv("motility.csv")
+motility <- read.csv("~/Desktop/motility/combined.csv")
 motility$SPP <- factor(motility$SPP, levels=c("brucei", "BoTat", "OVI", "BoTat:add-back", "OVI:add-back"))
 
 faz_comparisons <- list( c("brucei", "OVI"), 
@@ -136,7 +136,7 @@ f <- ggboxplot(motility, x = "SPP", y = "MEAN_STRAIGHT_LINE_SPEED",
   theme(plot.title = element_text(face = "bold")) +
   theme(text = element_text(size = 12))  + 
   guides(color = FALSE, size = FALSE) +
-  labs(fill="Clade")
+  labs(fill="Clade") 
 
 tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/Fig.2.tiff", units="in", width=13, height=15, res=300)
 ggarrange(results_2.4020$plot, b, results_5.2580$plot, d, results_11.3400$plot, f, ncol = 2, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL, padding = unit(1000,"line"))) 

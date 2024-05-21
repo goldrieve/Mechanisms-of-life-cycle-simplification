@@ -156,9 +156,9 @@ dividing <- ggline(filtered, x = "DPI", y = "dividing",
                    add.params = list(size = 3),
                    color = "Clade", palette = pal) +
   #scale_color_viridis(discrete = T) +
-  ggtitle("Tb927.5.2580 1K1N/2K1N") +
+  ggtitle("Tb927.5.2580 2K1N/2K2N") +
   theme(plot.title = element_text(hjust = 0.5)) +
-  ylab ("1K1N/2K1N (%)") + 
+  ylab ("2K1N/2K2N (%)") + 
   theme(text = element_text(size = 15)) +
   xlim (4,9) +
   stat_pvalue_manual(pwc_slim,  label = "p.adj.signif", tip.length = 0, hide.ns = T, color = 'group2', size = 5) 
@@ -169,10 +169,10 @@ dividing_mouse <- ggline(vivo, x = "DPI", y = "dividing",
                          color = "Clade", 
                          facet.by = "Mouse", 
                          short.panel.labs = T, palette = pal) +
-  ggtitle("Tb927.5.2580 1K1N/2K1N") +
+  ggtitle("Tb927.5.2580 2K1N/2K2N") +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab ("DPI") +
-  ylab ("1K1N/2K1N (%)") + 
+  ylab ("2K1N/2K2N (%)") + 
   xlim (4,9) +
   theme(text = element_text(size = 15)) 
 
@@ -183,10 +183,10 @@ d <- ggplot() +
   theme(text = element_text(size = 15)) 
 
 
-tiff("Fig.3.tiff", units="in", width=12, height=10, res=300)
+tiff("~/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.3/Fig.3.tiff", units="in", width=12, height=10, res=300)
 ggarrange(cells, pad, dividing, d, ncol = 2, nrow = 2, common.legend = F, legend="top", align = c("h"), labels = c("a", "b", "c", "d"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
-tiff("Fig.S5.tiff", units="in", width=12, height=10, res=300)
+tiff("~/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.3/Fig.S5.tiff", units="in", width=12, height=10, res=300)
 ggarrange(cells_mouse, pad_mouse, dividing_mouse, ncol = 2, nrow = 2, common.legend = T, legend="top", align = c("h"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

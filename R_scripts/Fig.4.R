@@ -161,7 +161,7 @@ sa <- as.ggplot(pheatmap(mat, annotation_col = anno, fontsize_row = 3))
 diffs <- list(sigdif_list$A2$rn, sigdif_list$A4$rn, sigdif_list$A5$rn, sigdif_list$A6$rn, sigdif_list$A7$rn)
 c <- venn(diffs, snames = c("A2", "A4", "A5", "A6", "A7"), ilabels = "counts", zcolor = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), ellipse = T,  ggplot = T, borders = T, box = F, ilcs = 1, sncs = 2)
 
-setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/go_term")
+setwd("/Volumes/csce/biology/groups/matthews/Guy/Raw_data/monomorph/data/go_term")
 
 common_go <- read.csv("common_DE.csv")
 common_go_slim <- filter(common_go, Benjamini <= 0.05)
@@ -175,7 +175,7 @@ sd <- ggplot(common_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichme
   xlab("Fold enrichment") +
   theme(text = element_text(size = 18)) 
 
-setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4")
+setwd("/Volumes/csce/biology/groups/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4")
 qpcr <- read.csv("rbp10_zc3h20_qpcr.csv")
 qpcr_out <- split( qpcr , f = qpcr$clone)
 
@@ -194,6 +194,7 @@ A1_7 <-filter(A1_7, clone != 'A1')
 A1_7 <-filter(A1_7, clone != 'A3')
 A1_7$Hours <- as.numeric(A1_7$Hours)
 A1_7$BHI <- factor(A1_7$BHI, levels=c("HMI-9", "HMI-9:BHI"))
+A1_7$Competence <- factor(A1_7$Competence, levels=c("Pleomorph", "Monomorph"))
 
 a <- ggline(A1_7, x = "Hours", y = "Norm_density", add = c("mean_se", "jitter"),
             color = "clone", size = 1.5,
@@ -267,7 +268,7 @@ rb_zc_ifa$pad <- ((rb_zc_ifa$pad) / rb_zc_ifa$total)*100
 se <- ggboxplot(rb_zc_ifa, x = 'line', y = 'dividing', facet.by = c("Gene"), short.panel.labs = T) + 
   facet_wrap(c("gene"), scales = 'free_x') +
   theme(text = element_text(size = 15)) +
-  ylab("1K1N/2K1N cells (%)") +
+  ylab("2K1N/2K2N cells (%)") +
   xlab("") +
   ggtitle ("") +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
