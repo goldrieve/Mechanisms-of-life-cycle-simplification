@@ -22,6 +22,6 @@ All figures in the manuscript were produced in R, using the four R scripts in th
 You can download the aligned fasta sequences, one per isolate, for each CDS.
 
 ```
-wget https://github.com/goldrieve/Mechanisms-of-life-cycle-simplification/blob/master/alignment_fastas/alignment.fasta.tar.gz
+wget https://github.com/goldrieve/Mechanisms-of-life-cycle-simplification/raw/master/alignment_fasta/alignment.fasta.tar.gz
 tar -xvf alignment.fasta.tar.gz
 ```
