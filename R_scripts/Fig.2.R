@@ -138,7 +138,7 @@ f <- ggboxplot(motility, x = "SPP", y = "MEAN_STRAIGHT_LINE_SPEED",
   guides(color = FALSE, size = FALSE) +
   labs(fill="Clade") 
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/Fig.2.tiff", units="in", width=13, height=15, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.2/Fig.2.tiff", units="in", width=13, height=15, res=300)
 ggarrange(results_2.4020$plot, b, results_5.2580$plot, d, results_11.3400$plot, f, ncol = 2, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL, padding = unit(1000,"line"))) 
 dev.off()
 
@@ -177,7 +177,7 @@ s2c <- ggplot() +
   theme_void() + 
   ggtitle("") 
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.2/S2.tiff", units="in", width=8, height=14, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.2/S2.tiff", units="in", width=8, height=14, res=300)
 ggarrange(s2a, s2b, s2c, ncol = 1, nrow = 3, common.legend = F, legend="top", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL, padding = unit(1000,"line"))) 
 dev.off()
 

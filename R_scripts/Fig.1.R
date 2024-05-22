@@ -109,7 +109,7 @@ a <- ggtree(tree, layout="circular") +
 fig1_plots = list(p1,a)
 
 # Export plot
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.1.tiff", units="in", width=6, height=10, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.1/Fig.1.tiff", units="in", width=6, height=10, res=300)
 ggarrange(plotlist = fig1_plots, ncol = 1, nrow = 2, labels = c("b", "a"), font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
@@ -174,6 +174,6 @@ dnds_plot <- ggplot(dnds_long, aes(x=(valuecol), y=keycol, colour=Category)) +
   theme(text = element_text(size = 15)) 
 
 # Export plot
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.1/Fig.S1.tiff", units="in", width=15, height=20, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.1/Fig.S1.tiff", units="in", width=15, height=20, res=300)
 ggarrange(plots$ovi_cnv_go.csv, plots$evansi_a_dnds_go.csv, plots$evansi_b_dnds_go.csv, plots$evansi_c_dnds_go.csv, plots$equi_ovi_dnds_go.csv, plots$equi_botat_dnds_go.csv, dnds_plot, plots$ovi_roh_go.csv, ncol = 2, nrow = 4, common.legend = F, legend="right", align = c("h"), labels = "auto", font.label = list(size = 20, color = "black", face = "bold", family = NULL))
 dev.off()

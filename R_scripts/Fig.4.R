@@ -12,7 +12,7 @@ scientific_10 <- function(x) {
 #DESeq2
 
 # Define and set the working directory
-wd <- "/Users/goldriev/keep/Store/PHD/Monomorph_wet/Clonal_selection/BHI_selection/RNA_seq/salmon"
+wd <- "/Volumes/matthews/Guy/Raw_data/monomorph/data/salmon"
 setwd(wd)
 
 # Read in the sample data
@@ -151,7 +151,7 @@ anno <- as.data.frame(colData(vsd)[, c("stage","clone")])
 d <- as.ggplot(pheatmap(mat, annotation_col = anno))
 
 # Extract data for QS pathway heatmap
-QS <- (c("Tb927.2.1810","Tb927.2.2720","Tb927.2.4020","Tb927.3.4560","Tb927.4.670","Tb927.4.3620","Tb927.4.3630","Tb927.4.3640","Tb927.4.3650","Tb927.5.3580","Tb927.6.2300","Tb927.6.2360","Tb927.7.2100","Tb927.7.7160","Tb927.8.2860","Tb927.9.4080","Tb927.9.7550","Tb927.9.13530","Tb927.10.5930","Tb927.10.5940","Tb927.10.5950","Tb927.10.12100","Tb927.10.15020","Tb927.10.16120","Tb927.11.290","Tb927.11.300","Tb927.11.750","Tb927.11.760","Tb927.11.1640","Tb927.11.2250","Tb927.11.3650","Tb927.11.4610","Tb927.11.6600","Tb927.11.11470","Tb927.11.11480","Tb927.10.12090","Tb927.1.1930","Tb927.11.9270","Tb927.6.4220","Tb927.8.1530","Tb927.10.1740","Tb927.10.1750","Tb927.10.2030","Tb927.10.2530","Tb927.10.12110","Tb927.11.1480","Tb927.11.6610","Tb927.7.2660","Tb927.4.5390","Tb927.8.6930","Tb927.9.6100","Tb927.9.6090","Tb927.8.7020","Tb927.11.2500","Tb927.8.8330","Tb927.11.3570","Tb927.6.400","Tb927.11.6590","Tb927.3.2090","Tb927.3.3410","Tb927.11.12850","Tb927.3.4750","Tb927.10.12260","Tb927.1.2100","Tb927.8.2780"))
+QS <- (c("Tb927.2.1810","Tb927.2.2720","Tb927.2.4020","Tb927.3.4560","Tb927.4.670","Tb927.4.3620","Tb927.4.3630","Tb927.4.3640","Tb927.4.3650","Tb927.5.3580","Tb927.6.2300","Tb927.6.2360","Tb927.7.2100","Tb927.7.7160","Tb927.8.2860","Tb927.9.4080","Tb927.9.7550","Tb927.9.13530","Tb927.10.5930","Tb927.10.5940","Tb927.10.5950","Tb927.10.12100","Tb927.10.15020","Tb927.10.16120","Tb927.11.290","Tb927.11.300","Tb927.11.750","Tb927.11.760","Tb927.11.1640","Tb927.11.2250","Tb927.11.3650","Tb927.11.4610","Tb927.11.6600","Tb927.11.11470","Tb927.11.11480","Tb927.10.12090","Tb927.1.1930","Tb927.11.9270","Tb927.6.4220","Tb927.8.1530","Tb927.10.1740","Tb927.10.1750","Tb927.10.2030","Tb927.10.2530","Tb927.10.12110","Tb927.11.1480","Tb927.11.6610","Tb927.7.2660","Tb927.4.5390","Tb927.8.7020","Tb927.11.2500","Tb927.8.8330","Tb927.11.3570","Tb927.6.400","Tb927.11.6590","Tb927.3.2090","Tb927.3.3410","Tb927.11.12850","Tb927.3.4750","Tb927.10.12260","Tb927.1.2100","Tb927.8.2780"))
 mat <- assay(vsd)[ QS, ]
 mat  <- mat - rowMeans(mat)
 anno <- as.data.frame(colData(vsd)[, c("stage","isolate")])
@@ -161,7 +161,7 @@ sa <- as.ggplot(pheatmap(mat, annotation_col = anno, fontsize_row = 3))
 diffs <- list(sigdif_list$A2$rn, sigdif_list$A4$rn, sigdif_list$A5$rn, sigdif_list$A6$rn, sigdif_list$A7$rn)
 c <- venn(diffs, snames = c("A2", "A4", "A5", "A6", "A7"), ilabels = "counts", zcolor = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3"), ellipse = T,  ggplot = T, borders = T, box = F, ilcs = 1, sncs = 2)
 
-setwd("/Volumes/csce/biology/groups/matthews/Guy/Raw_data/monomorph/data/go_term")
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/salmon")
 
 common_go <- read.csv("common_DE.csv")
 common_go_slim <- filter(common_go, Benjamini <= 0.05)
@@ -175,7 +175,7 @@ sd <- ggplot(common_go_slim, aes(x=Fold.enrichment, y=reorder(ID, -Fold.enrichme
   xlab("Fold enrichment") +
   theme(text = element_text(size = 18)) 
 
-setwd("/Volumes/csce/biology/groups/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4")
+setwd("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4")
 qpcr <- read.csv("rbp10_zc3h20_qpcr.csv")
 qpcr_out <- split( qpcr , f = qpcr$clone)
 
@@ -281,10 +281,10 @@ sf <- ggboxplot(rb_zc_ifa, x = 'line', y = 'pad', facet.by = c("Gene"), short.pa
   ggtitle ("") +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.4.tiff", units="in", width=15, height=15, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4/Fig.4.tiff", units="in", width=15, height=15, res=300)
 ggarrange(a, b, c, d, e, ncol = 2, nrow = 3, common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()
 
-tiff("/Users/goldriev/Google Drive/My Drive/Developmental_competence_ms/draft_ms/figures/Fig.4/Fig.S6.tiff", units="in", width=15, height=15, res=300)
+tiff("/Volumes/matthews/Guy/Raw_data/monomorph/data/figures/Fig.4/Fig.S6.tiff", units="in", width=15, height=15, res=300)
 ggarrange(sa, sb, sc, sd, se, sf, ncol = 2, nrow = 3,  common.legend = F, legend="right", align = c("hv"), labels = "auto", font.label = list(size = 14, color = "black", face = "bold", family = NULL))
 dev.off()

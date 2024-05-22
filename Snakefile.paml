@@ -46,7 +46,7 @@ rule codeml:
                 "data/codeml/codeml/{sample}.txt"
         message: ''' --- running codeml --- '''
         shell:
-                "cd data/codeml/ctl/{params} \n  /Users/s1886853/Desktop/vcf2fasta_CDS/./expect_codeml.bsh i {params}.ctl"
+                "cd data/codeml/ctl/{params} \n  ./expect_codeml.bsh i {params}.ctl"
 
 rule combine:
         input:
