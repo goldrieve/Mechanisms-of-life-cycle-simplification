@@ -8,5 +8,5 @@ logs/
 .summarise.delly.py.swp*
 *._*
 pkgs/
-alignment_fastas/synthesised_seqs
-alignment_fastas/T*
+alignment_fasta/synthesised_seqs
+alignment_fasta/T*
