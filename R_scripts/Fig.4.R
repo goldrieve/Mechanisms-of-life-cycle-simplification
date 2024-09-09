@@ -117,16 +117,16 @@ common_elements
 #fisher.test(deTable, alternative = "greater")
 
 # Transformation and clustering
-vsd <- vst(dds_clone, blind=FALSE)
+vst <- vst(dds_clone, blind=FALSE)
 select <- order(rowMeans(counts(dds_clone,normalized=TRUE)),
                 decreasing=TRUE)[1:20]
 
 df <- as.data.frame(colData(dds_clone)[,c("stage","clone")])
 
 # Create a distance matrix for pca
-sampleDists <- dist(t(assay(vsd)))
+sampleDists <- dist(t(assay(vst)))
 sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep="-")
+rownames(sampleDistMatrix) <- paste(vst$condition, vsd$type, sep="-")
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 
@@ -216,20 +216,17 @@ rb_zc_slim %>%
   group_by(Dox, BHI, Hours) %>%
   get_summary_stats(Norm_density, type = "mean_sd")
 
-res.aov <- rb_zc_slim %>% 
-  group_by(BHI) %>% 
-  anova_test(dv = Norm_density, wid = Flask, within = Hours, between = Dox)
+res.aov <- anova_test(
+  data = rb_zc_slim, dv = Norm_density, wid = Flask,
+  between = c(Hours, Dox, BHI)
+)
 
 pwc <- rb_zc_slim %>%
   group_by(BHI, Hours, Gene) %>% 
   pairwise_t_test(
-    Norm_density ~ Conc, paired = F,
+    Norm_density ~ Dox, paired = F,
     p.adjust.method = "bonferroni"
   )
-
-pwc <- rb_zc_slim %>%
-  group_by(BHI, Hours, Gene) %>%
-  pairwise_t_test(Norm_density ~ Dox, paired = F, p.adjust.method = "bonferroni") 
 
 pwc <- pwc %>% add_xy_position(x = "Hours")
 

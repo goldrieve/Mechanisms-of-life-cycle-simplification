@@ -39,9 +39,10 @@ analyze_data <- function(df, clade_levels, pwc_filter, plot_title) {
     group_by(clade, Hours, Oligopeptides) %>%
     identify_outliers(Norm_density)
   
-  res.aov <- df %>% 
-    group_by(Oligopeptides) %>%
-    anova_test(dv = Norm_density, wid = flask, within = Hours, between = clade)
+  res.aov <- anova_test(
+    data = df, dv = Norm_density, wid = flask,
+    between = c(Hours, Oligopeptides, clade)
+  )
   
   pwc <- df %>%
     group_by (Oligopeptides, Hours) %>%
@@ -128,7 +129,7 @@ pal = c("black", "#E41A1C", "#387EB8","#29AF7FFF", "pink")
 f <- ggboxplot(motility, x = "SPP", y = "MEAN_STRAIGHT_LINE_SPEED",
                  add.params = list(size = 2, alpha = 0.1), color = "SPP", palette = pal,
                  add = "jitter") +
-  stat_compare_means(comparisons = faz_comparisons, label = ("p.signif")) +
+  stat_compare_means(test = "wilcox",comparisons = faz_comparisons, label = ("p.signif")) +
   ylab ("Mean straight line speed (microns/s)") +
   xlab ("Clade") +
   ggtitle ("Tb927.11.3400") +
